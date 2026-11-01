@@ -1,8 +1,7 @@
 <script lang="ts">
   import { untrack } from 'svelte';
   import { get } from 'svelte/store';
-  import Modal from '$lib/components/ui/Modal.svelte';
-  import Button from '$lib/components/ui/Button.svelte';
+  import { Button, Dialog } from '@calliope-edu/ui';
   import CompareChart from './CompareChart.svelte';
   import { examples, setVideoRef, videoRefs } from '$lib/stores';
   import { cachedConfusion } from '$lib/confusion';
@@ -641,493 +640,508 @@
   function shortLabel(label: string): string {
     return label.length > 4 ? label.slice(0, 3) + '.' : label;
   }
+
+  // The dialog would otherwise focus the first form field, which is the
+  // "nur Unterschiede zeigen" box far down the grid, and scroll the body there.
+  let doneButton = $state<HTMLElement | null>(null);
 </script>
 
-<Modal {isOpen} title="Modelle vergleichen" size="wide" flush onclose={() => (isOpen = false)}>
-  {#snippet subtitle()}
+<Dialog
+  bind:open={isOpen}
+  title="Modelle vergleichen"
+  size="full"
+  fill
+  initialFocus={() => doneButton}
+>
+  <div class="dialog-sub">
     <span>{models.length} Modelle</span>
     · <span>alle sehen dasselbe Bild</span>
     {#if models.length && new Set(models.flatMap((m) => m.classes)).size !== models[0].classes.length}
       · <span class="chip muted">Klassen weichen ab</span>
     {/if}
-  {/snippet}
+  </div>
 
-  {#snippet children()}
-    <div class="compare-body">
-      {#if loading}
-        <div class="state">Modelle werden geladen…</div>
-      {:else if loadError}
-        <div class="state error">{loadError}</div>
-      {:else}
-        <!-- ---------- one camera for all of them ---------- -->
-        <div class="source-band">
-          <div class="cam" class:pose={isPose}>
-            <!-- svelte-ignore a11y_media_has_caption -->
-            <video bind:this={videoEl} autoplay playsinline muted class:hidden={!!stillSrc}></video>
-            {#if stillSrc}
-              <img class="still" src={stillSrc} alt="Das Bild, das alle Modelle gerade bewerten" />
-            {/if}
-            {#if isPose}
-              <canvas bind:this={overlayCanvas} class="pose-overlay"></canvas>
-            {:else}
-              <!-- Every model's image region, in the colour of its column. They
-                   differ from model to model, and a comparison that hides them
-                   invites reading a difference in the numbers as a difference in
-                   the model when it was a difference in what each one was shown. -->
-              {#each models as model, i (model.id)}
-                <RoiOverlay
-                  roi={model.roi}
-                  aspect={videoAspect}
-                  color={COMPARE_COLORS[i % COMPARE_COLORS.length]}
-                  label={models.length > 1 ? modelLabel(model) : null}
-                  title={`Bildbereich von ${modelLabel(model)}`}
-                />
-              {/each}
-            {/if}
-            <div class="cam-tag" class:paused={!!stillSrc}>
-              <span class="live-dot"></span>{stillSrc ? 'Standbild' : 'live'}
-            </div>
-            <div class="cam-foot">
-              {#if stillSrc}
-                <button type="button" class="mini" onclick={() => switchSource('live')}>▶ Weiter</button>
-              {:else}
-                <button type="button" class="mini" onclick={freeze}>⏸ Einfrieren</button>
-              {/if}
-              <button type="button" class="mini" onclick={rememberFrame}>＋ Bild merken</button>
-            </div>
-          </div>
-
-          <!-- Never shown: the square frame predictAll classifies. -->
-          {#if isPose}
-            <canvas bind:this={poseCanvas} width="512" height="512" class="offscreen"></canvas>
+  <div class="compare-body">
+    {#if loading}
+      <div class="state">Modelle werden geladen…</div>
+    {:else if loadError}
+      <div class="state error">{loadError}</div>
+    {:else}
+      <!-- ---------- one camera for all of them ---------- -->
+      <div class="source-band">
+        <div class="cam" class:pose={isPose}>
+          <!-- svelte-ignore a11y_media_has_caption -->
+          <video bind:this={videoEl} autoplay playsinline muted class:hidden={!!stillSrc}></video>
+          {#if stillSrc}
+            <img class="still" src={stillSrc} alt="Das Bild, das alle Modelle gerade bewerten" />
           {/if}
-
-          <div class="src-right">
-            <div class="src-line">
-              <span class="src-label">Quelle</span>
-              <div class="seg">
-                <button type="button" class:on={source === 'live'} onclick={() => switchSource('live')}>
-                  Live-Kamera
-                </button>
-                <button type="button" class:on={source === 'examples'} onclick={() => switchSource('examples')}>
-                  Testbilder
-                </button>
-                <button
-                  type="button"
-                  class:on={source === 'saved'}
-                  disabled={!savedFrames.length}
-                  onclick={() => switchSource('saved')}
-                >
-                  Gemerkte Bilder ({savedFrames.length})
-                </button>
-              </div>
-            </div>
-
-            {#if source === 'examples'}
-              <div class="facts">
-                <div class="fact">
-                  <div class="f-label">Aufgenommene Bilder</div>
-                  <div class="f-value">{testProgress.total || Object.values(project?.examples ?? {}).reduce((a, b) => a + b.length, 0)}</div>
-                  <div class="f-sub">aus diesem Projekt</div>
-                </div>
-                <div class="fact">
-                  <div class="f-label">Alle einig</div>
-                  <div class="f-value">{testRun ? testRun.agreed : '–'}</div>
-                  {#if testRun}
-                    <div class="f-sub">{Math.round((testRun.agreed / Math.max(1, testRun.images)) * 100)} % der Bilder</div>
-                    <div class="meter"><span style="width:{(testRun.agreed / Math.max(1, testRun.images)) * 100}%"></span></div>
-                  {/if}
-                </div>
-                <div class="fact">
-                  <div class="f-label">Uneinig</div>
-                  <div class="f-value">{testRun ? testRun.images - testRun.agreed : '–'}</div>
-                  <div class="f-sub">unten zum Durchsehen</div>
-                </div>
-              </div>
-              <div class="src-line">
-                <Button size="small" onclick={runTestSet} disabled={testRunning}>
-                  {testRunning ? 'Rechnet…' : testRun ? 'Neu durchrechnen' : 'Durchrechnen'}
-                </Button>
-                {#if testRunning}
-                  <span class="hint">{testProgress.done} / {testProgress.total}</span>
-                  <div class="meter grow">
-                    <span style="width:{(testProgress.done / Math.max(1, testProgress.total)) * 100}%"></span>
-                  </div>
-                  <button type="button" class="link" onclick={() => (stopRequested = true)}>Abbrechen</button>
-                {/if}
-              </div>
-              <p class="src-note">
-                Beim Live-Bild siehst du ein Bild. Hier laufen alle aufgenommenen Bilder durch jedes Modell — das ist
-                der fairere Vergleich, weil alle dieselben Bilder bekommen. Es sind allerdings die Bilder, mit denen
-                trainiert wurde: an der Kamera sind die Zahlen meist schlechter.
-              </p>
+          {#if isPose}
+            <canvas bind:this={overlayCanvas} class="pose-overlay"></canvas>
+          {:else}
+            <!-- Every model's image region, in the colour of its column. They
+                 differ from model to model, and a comparison that hides them
+                 invites reading a difference in the numbers as a difference in
+                 the model when it was a difference in what each one was shown. -->
+            {#each models as model, i (model.id)}
+              <RoiOverlay
+                roi={model.roi}
+                aspect={videoAspect}
+                color={COMPARE_COLORS[i % COMPARE_COLORS.length]}
+                label={models.length > 1 ? modelLabel(model) : null}
+                title={`Bildbereich von ${modelLabel(model)}`}
+              />
+            {/each}
+          {/if}
+          <div class="cam-tag" class:paused={!!stillSrc}>
+            <span class="live-dot"></span>{stillSrc ? 'Standbild' : 'live'}
+          </div>
+          <div class="cam-foot">
+            {#if stillSrc}
+              <button type="button" class="mini" onclick={() => switchSource('live')}>▶ Weiter</button>
             {:else}
-              <div class="facts">
-                <div class="fact">
-                  <div class="f-label">Einig gerade</div>
-                  <div class="f-value">{agreeingNow} von {models.length}</div>
-                  <div class="f-sub">{majorityLabel ?? 'kein gemeinsames Ergebnis'}</div>
-                </div>
-                <div class="fact">
-                  <div class="f-label">Einigkeit (letzte {agreeWindow.length} Bilder)</div>
-                  <div class="f-value">{agreementRate == null ? '–' : `${Math.round(agreementRate * 100)} %`}</div>
-                  {#if agreementRate != null}
-                    <div class="meter"><span style="width:{agreementRate * 100}%"></span></div>
-                  {/if}
-                </div>
-                <div class="fact">
-                  <div class="f-label">Rechenzeit</div>
-                  <div class="f-value">{tickMs == null ? '–' : `${Math.round(tickMs)} ms`}</div>
-                  <div class="f-sub">
-                    {models.length} Modelle zusammen{sharedExtractor ? ', ein Durchlauf' : ''}
-                  </div>
-                </div>
-              </div>
-              <p class="src-note">
-                Jedes Bild der Kamera läuft durch alle Modelle, die Prozentwerte unten gehören also zum selben Moment.
-                „Einfrieren" hält ein Bild an, „Bild merken" legt es zur Seite.
-              </p>
+              <button type="button" class="mini" onclick={freeze}>⏸ Einfrieren</button>
             {/if}
-
-            {#if savedFrames.length}
-              <div class="saved-strip">
-                {#each savedFrames as frame, i (frame)}
-                  <button
-                    type="button"
-                    class="saved-thumb"
-                    class:on={stillSrc === frame}
-                    onclick={() => pickImage(frame)}
-                    aria-label={`Gemerktes Bild ${i + 1}`}
-                  >
-                    <img src={frame} alt="" />
-                  </button>
-                {/each}
-              </div>
-            {/if}
+            <button type="button" class="mini" onclick={rememberFrame}>＋ Bild merken</button>
           </div>
         </div>
 
-        <!-- ---------- the columns ---------- -->
-        <div class="cmp-wrap">
-          <!-- The lanes span the whole grid so the buttons can stay in view
-               while it is scrolled up and down, not only at its top edge. -->
-          {#if canScrollLeft}
-            <div class="pager-lane left">
-              <button type="button" class="pager" onclick={() => page(-1)} aria-label="Spalten nach links">‹</button>
-            </div>
-          {/if}
-          {#if canScrollRight}
-            <div class="pager-lane right">
-              <button type="button" class="pager" onclick={() => page(1)} aria-label="Spalten nach rechts">›</button>
-            </div>
-          {/if}
-          <div class="cmp-scroll" bind:this={cmpScroll} onscroll={readScroll}>
-        <div class="cmp" style={gridStyle}>
-          <div class="rail head-rail"></div>
-          {#each models as model, i (model.id)}
-            <div class="chead sep">
-              <div class="ch-top">
-                <span class="dot" style="background:{COMPARE_COLORS[i % COMPARE_COLORS.length]}"></span>
-                <span class="ch-name" title={modelLabel(model)}>{modelLabel(model)}</span>
-              </div>
-              <div class="ch-meta">{new Date(model.trainedAt).toLocaleString('de-DE')}</div>
-              <div class="ch-chips">
-                {#if model.id === project?.currentModelId}<span class="chip">aktiv</span>{/if}
-                {#if model.source === 'imported'}<span class="chip muted">importiert</span>{/if}
-                <button
-                  type="button"
-                  class="chip outline"
-                  class:on={reference?.id === model.id}
-                  onclick={() => (referenceId = model.id)}
-                  title="Die anderen Spalten zeigen ihren Abstand zu diesem Modell"
-                >
-                  {reference?.id === model.id ? 'Referenz' : 'als Referenz'}
-                </button>
-              </div>
-              {#if model.id !== project?.currentModelId}
-                <div class="ch-actions">
-                  <Button size="small" onclick={() => useModel(model)}>Verwenden</Button>
-                </div>
-              {/if}
-            </div>
-          {/each}
+        <!-- Never shown: the square frame predictAll classifies. -->
+        {#if isPose}
+          <canvas bind:this={poseCanvas} width="512" height="512" class="offscreen"></canvas>
+        {/if}
 
-          <!-- what they see right now -->
-          <div class="group-head">
-            <span class="gh-inner">
-            {source === 'examples' ? 'Ergebnis auf den Testbildern' : 'Erkannt in diesem Bild'}
-            <span class="gh-right">
-              {#if source === 'examples'}
-                <span class="hint">nur Bilder, deren Klasse das Modell kennt</span>
-              {:else}
-                <span class="hint">Schwelle {Math.round(CLASS_THRESHOLD * 100)} % als Strich im Balken</span>
-              {/if}
-            </span>
-            </span>
+        <div class="src-right">
+          <div class="src-line">
+            <span class="src-label">Quelle</span>
+            <div class="seg">
+              <button type="button" class:on={source === 'live'} onclick={() => switchSource('live')}>
+                Live-Kamera
+              </button>
+              <button type="button" class:on={source === 'examples'} onclick={() => switchSource('examples')}>
+                Testbilder
+              </button>
+              <button
+                type="button"
+                class:on={source === 'saved'}
+                disabled={!savedFrames.length}
+                onclick={() => switchSource('saved')}
+              >
+                Gemerkte Bilder ({savedFrames.length})
+              </button>
+            </div>
           </div>
 
           {#if source === 'examples'}
-            {#if !testRun}
-              <div class="rail"></div>
-              <div class="cell sep spanning" style="grid-column: 2 / -1;">
-                <span class="hint">Noch nicht durchgerechnet — der Knopf oben startet den Durchlauf.</span>
+            <div class="facts">
+              <div class="fact">
+                <div class="f-label">Aufgenommene Bilder</div>
+                <div class="f-value">{testProgress.total || Object.values(project?.examples ?? {}).reduce((a, b) => a + b.length, 0)}</div>
+                <div class="f-sub">aus diesem Projekt</div>
               </div>
-            {:else}
-              <div class="rail strong">Richtig erkannt</div>
-              {#each models as model (model.id)}
-                {@const r = testResultFor(model)}
-                <div class="cell sep">
-                  {#if r && r.total}
-                    <div class="val">{r.correct} von {r.total}</div>
-                    <div class="delta">{((r.correct / r.total) * 100).toFixed(1).replace('.', ',')} %</div>
-                  {:else}
-                    <span class="missing">keine passenden Bilder</span>
-                  {/if}
-                </div>
-              {/each}
-
-              <div class="rail">Davon sicher</div>
-              {#each models as model (model.id)}
-                {@const r = testResultFor(model)}
-                <div class="cell sep">
-                  <div class="val plain">{r ? r.confident : '–'}</div>
-                  <div class="delta">über {Math.round(CLASS_THRESHOLD * 100)} %</div>
-                </div>
-              {/each}
-
-              {#each classRows as label (label)}
-                <div class="rail">{label}</div>
-                {#each models as model (model.id)}
-                  {@const r = testResultFor(model)}
-                  {@const per = r?.perClass.find((c) => c.label === label)}
-                  <div class="cell sep">
-                    {#if !per || !per.total}
-                      <span class="missing">— Klasse fehlt in diesem Modell</span>
-                    {:else}
-                      {@const share = per.correct / per.total}
-                      <div class="bar-row">
-                        <div class="bar"><span style="width:{share * 100}%"></span></div>
-                        <span class="pct">{Math.round(share * 100)} %</span>
-                      </div>
-                    {/if}
-                  </div>
-                {/each}
-              {/each}
-            {/if}
-          {:else}
-            <div class="rail strong">Top-Klasse</div>
-            {#each models as model (model.id)}
-              {@const p = predictionFor(model)}
-              {@const off = !!p && !!majorityLabel && p.topLabel !== majorityLabel}
-              <div class="cell sep" class:disagree={off}>
-                {#if p}
-                  <div class="top-class">
-                    <span class="tc-name">{p.topLabel}</span>
-                    <span class="tc-pct">{Math.round(p.topProb * 100)} %</span>
-                  </div>
-                  {#if off || p.topProb < CLASS_THRESHOLD}
-                    <span class="flag">
-                      {off ? '▲ weicht ab' : ''}{off && p.topProb < CLASS_THRESHOLD ? ' · ' : ''}{p.topProb <
-                      CLASS_THRESHOLD
-                        ? 'unter Schwelle'
-                        : ''}
-                    </span>
-                  {/if}
-                {:else}
-                  <span class="missing">–</span>
+              <div class="fact">
+                <div class="f-label">Alle einig</div>
+                <div class="f-value">{testRun ? testRun.agreed : '–'}</div>
+                {#if testRun}
+                  <div class="f-sub">{Math.round((testRun.agreed / Math.max(1, testRun.images)) * 100)} % der Bilder</div>
+                  <div class="meter"><span style="width:{(testRun.agreed / Math.max(1, testRun.images)) * 100}%"></span></div>
                 {/if}
+              </div>
+              <div class="fact">
+                <div class="f-label">Uneinig</div>
+                <div class="f-value">{testRun ? testRun.images - testRun.agreed : '–'}</div>
+                <div class="f-sub">unten zum Durchsehen</div>
+              </div>
+            </div>
+            <div class="src-line">
+              <Button size="s" onclick={runTestSet} disabled={testRunning}>
+                {testRunning ? 'Rechnet…' : testRun ? 'Neu durchrechnen' : 'Durchrechnen'}
+              </Button>
+              {#if testRunning}
+                <span class="hint">{testProgress.done} / {testProgress.total}</span>
+                <div class="meter grow">
+                  <span style="width:{(testProgress.done / Math.max(1, testProgress.total)) * 100}%"></span>
+                </div>
+                <button type="button" class="link" onclick={() => (stopRequested = true)}>Abbrechen</button>
+              {/if}
+            </div>
+            <p class="src-note">
+              Beim Live-Bild siehst du ein Bild. Hier laufen alle aufgenommenen Bilder durch jedes Modell — das ist
+              der fairere Vergleich, weil alle dieselben Bilder bekommen. Es sind allerdings die Bilder, mit denen
+              trainiert wurde: an der Kamera sind die Zahlen meist schlechter.
+            </p>
+          {:else}
+            <div class="facts">
+              <div class="fact">
+                <div class="f-label">Einig gerade</div>
+                <div class="f-value">{agreeingNow} von {models.length}</div>
+                <div class="f-sub">{majorityLabel ?? 'kein gemeinsames Ergebnis'}</div>
+              </div>
+              <div class="fact">
+                <div class="f-label">Einigkeit (letzte {agreeWindow.length} Bilder)</div>
+                <div class="f-value">{agreementRate == null ? '–' : `${Math.round(agreementRate * 100)} %`}</div>
+                {#if agreementRate != null}
+                  <div class="meter"><span style="width:{agreementRate * 100}%"></span></div>
+                {/if}
+              </div>
+              <div class="fact">
+                <div class="f-label">Rechenzeit</div>
+                <div class="f-value">{tickMs == null ? '–' : `${Math.round(tickMs)} ms`}</div>
+                <div class="f-sub">
+                  {models.length} Modelle zusammen{sharedExtractor ? ', ein Durchlauf' : ''}
+                </div>
+              </div>
+            </div>
+            <p class="src-note">
+              Jedes Bild der Kamera läuft durch alle Modelle, die Prozentwerte unten gehören also zum selben Moment.
+              „Einfrieren" hält ein Bild an, „Bild merken" legt es zur Seite.
+            </p>
+          {/if}
+
+          {#if savedFrames.length}
+            <div class="saved-strip">
+              {#each savedFrames as frame, i (frame)}
+                <button
+                  type="button"
+                  class="saved-thumb"
+                  class:on={stillSrc === frame}
+                  onclick={() => pickImage(frame)}
+                  aria-label={`Gemerktes Bild ${i + 1}`}
+                >
+                  <img src={frame} alt="" />
+                </button>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      </div>
+
+      <!-- ---------- the columns ---------- -->
+      <div class="cmp-wrap">
+        <!-- The lanes span the whole grid so the buttons can stay in view
+             while it is scrolled up and down, not only at its top edge. -->
+        {#if canScrollLeft}
+          <div class="pager-lane left">
+            <button type="button" class="pager" onclick={() => page(-1)} aria-label="Spalten nach links">‹</button>
+          </div>
+        {/if}
+        {#if canScrollRight}
+          <div class="pager-lane right">
+            <button type="button" class="pager" onclick={() => page(1)} aria-label="Spalten nach rechts">›</button>
+          </div>
+        {/if}
+        <div class="cmp-scroll" bind:this={cmpScroll} onscroll={readScroll}>
+      <div class="cmp" style={gridStyle}>
+        <div class="rail head-rail"></div>
+        {#each models as model, i (model.id)}
+          <div class="chead sep">
+            <div class="ch-top">
+              <span class="dot" style="background:{COMPARE_COLORS[i % COMPARE_COLORS.length]}"></span>
+              <span class="ch-name" title={modelLabel(model)}>{modelLabel(model)}</span>
+            </div>
+            <div class="ch-meta">{new Date(model.trainedAt).toLocaleString('de-DE')}</div>
+            <div class="ch-chips">
+              {#if model.id === project?.currentModelId}<span class="chip">aktiv</span>{/if}
+              {#if model.source === 'imported'}<span class="chip muted">importiert</span>{/if}
+              <button
+                type="button"
+                class="chip outline"
+                class:on={reference?.id === model.id}
+                onclick={() => (referenceId = model.id)}
+                title="Die anderen Spalten zeigen ihren Abstand zu diesem Modell"
+              >
+                {reference?.id === model.id ? 'Referenz' : 'als Referenz'}
+              </button>
+            </div>
+            {#if model.id !== project?.currentModelId}
+              <div class="ch-actions">
+                <Button size="s" onclick={() => useModel(model)}>Verwenden</Button>
+              </div>
+            {/if}
+          </div>
+        {/each}
+
+        <!-- what they see right now -->
+        <div class="group-head">
+          <span class="gh-inner">
+          {source === 'examples' ? 'Ergebnis auf den Testbildern' : 'Erkannt in diesem Bild'}
+          <span class="gh-right">
+            {#if source === 'examples'}
+              <span class="hint">nur Bilder, deren Klasse das Modell kennt</span>
+            {:else}
+              <span class="hint">Schwelle {Math.round(CLASS_THRESHOLD * 100)} % als Strich im Balken</span>
+            {/if}
+          </span>
+          </span>
+        </div>
+
+        {#if source === 'examples'}
+          {#if !testRun}
+            <div class="rail"></div>
+            <div class="cell sep spanning" style="grid-column: 2 / -1;">
+              <span class="hint">Noch nicht durchgerechnet — der Knopf oben startet den Durchlauf.</span>
+            </div>
+          {:else}
+            <div class="rail strong">Richtig erkannt</div>
+            {#each models as model (model.id)}
+              {@const r = testResultFor(model)}
+              <div class="cell sep">
+                {#if r && r.total}
+                  <div class="val">{r.correct} von {r.total}</div>
+                  <div class="delta">{((r.correct / r.total) * 100).toFixed(1).replace('.', ',')} %</div>
+                {:else}
+                  <span class="missing">keine passenden Bilder</span>
+                {/if}
+              </div>
+            {/each}
+
+            <div class="rail">Davon sicher</div>
+            {#each models as model (model.id)}
+              {@const r = testResultFor(model)}
+              <div class="cell sep">
+                <div class="val plain">{r ? r.confident : '–'}</div>
+                <div class="delta">über {Math.round(CLASS_THRESHOLD * 100)} %</div>
               </div>
             {/each}
 
             {#each classRows as label (label)}
               <div class="rail">{label}</div>
               {#each models as model (model.id)}
-                {@const index = model.classes.indexOf(label)}
-                {@const p = predictionFor(model)}
+                {@const r = testResultFor(model)}
+                {@const per = r?.perClass.find((c) => c.label === label)}
                 <div class="cell sep">
-                  {#if index < 0}
+                  {#if !per || !per.total}
                     <span class="missing">— Klasse fehlt in diesem Modell</span>
-                  {:else if !p}
-                    <span class="missing">–</span>
                   {:else}
-                    {@const value = p.probs[index] ?? 0}
+                    {@const share = per.correct / per.total}
                     <div class="bar-row">
-                      <div class="bar" class:win={p.topIndex === index}>
-                        <span style="width:{value * 100}%"></span>
-                        <i class="thr" style="left:{CLASS_THRESHOLD * 100}%"></i>
-                      </div>
-                      <span class="pct" class:dim={p.topIndex !== index}>{Math.round(value * 100)} %</span>
+                      <div class="bar"><span style="width:{share * 100}%"></span></div>
+                      <span class="pct">{Math.round(share * 100)} %</span>
                     </div>
                   {/if}
                 </div>
               {/each}
             {/each}
           {/if}
-
-          <!-- the numbers that belong to the model itself -->
-          <div class="group-head">
-            <span class="gh-inner">
-            Kennzahlen
-            <span class="gh-right">
-              <span class="hint">Abstand zur Referenz „{reference ? modelLabel(reference) : '–'}"</span>
-            </span>
-            </span>
-          </div>
-
-          {#each metricRows as row (row.label)}
-            {@const bestAt = row.better ? bestIndexOf(row.values, row.better) : null}
-            <div class="rail" title={row.hint ?? ''}>{row.label}</div>
-            {#each models as model, i (model.id)}
-              {@const value = row.values[i]}
-              <div class="cell sep">
-                {#if value == null}
-                  <span class="missing">–</span>
-                {:else}
-                  <div class="val">
-                    {row.format(value)}
-                    {#if bestAt === i && row.bestLabel}<span class="best">{row.bestLabel}</span>{/if}
-                  </div>
-                  {@const delta = deltaText(row, value, i)}
-                  {#if delta}<div class="delta">{delta}</div>{/if}
-                {/if}
-              </div>
-            {/each}
-          {/each}
-
-          <div class="rail">Häufigste Verwechslung</div>
+        {:else}
+          <div class="rail strong">Top-Klasse</div>
           {#each models as model (model.id)}
-            <div class="cell sep">
-              {#if worstPairOf(model)}
-                <div class="val plain">{worstPairOf(model)}</div>
+            {@const p = predictionFor(model)}
+            {@const off = !!p && !!majorityLabel && p.topLabel !== majorityLabel}
+            <div class="cell sep" class:disagree={off}>
+              {#if p}
+                <div class="top-class">
+                  <span class="tc-name">{p.topLabel}</span>
+                  <span class="tc-pct">{Math.round(p.topProb * 100)} %</span>
+                </div>
+                {#if off || p.topProb < CLASS_THRESHOLD}
+                  <span class="flag">
+                    {off ? '▲ weicht ab' : ''}{off && p.topProb < CLASS_THRESHOLD ? ' · ' : ''}{p.topProb <
+                    CLASS_THRESHOLD
+                      ? 'unter Schwelle'
+                      : ''}
+                  </span>
+                {/if}
               {:else}
-                <span class="missing">nach dem Durchrechnen</span>
+                <span class="missing">–</span>
               {/if}
             </div>
           {/each}
 
-          <!-- how they were set up -->
-          <div class="group-head">
-            <span class="gh-inner">
-            Einstellungen
-            <span class="gh-right">
-              <label class="switch-label">
-                <input type="checkbox" bind:checked={diffOnly} />
-                nur Unterschiede zeigen
-              </label>
-            </span>
-            </span>
-          </div>
-
-          {#if !shownSettingRows.length}
-            <div class="rail"></div>
-            <div class="cell sep" style="grid-column: 2 / -1;">
-              <span class="hint">Diese Modelle wurden mit denselben Einstellungen trainiert.</span>
-            </div>
-          {/if}
-          {#each shownSettingRows as row (row.label)}
-            {@const differs = new Set(row.values).size > 1}
-            <div class="rail" class:same={!differs}>{row.label}</div>
-            {#each models as model, i (model.id)}
-              <div class="cell sep">
-                <div class="val plain" class:diff={differs && row.values[i] !== row.values[0]}>{row.values[i]}</div>
-              </div>
-            {/each}
-          {/each}
-
-          <!-- where each of them loses which class -->
-          {#if anyMatrix}
-            <div class="group-head">
-            <span class="gh-inner">
-              Verwechslungen
-              <span class="gh-right"><span class="hint">Zeile = was es war, Spalte = was das Modell sagte</span></span>
-            </span>
-          </div>
-            <div class="rail">Matrix</div>
+          {#each classRows as label (label)}
+            <div class="rail">{label}</div>
             {#each models as model (model.id)}
-              {@const r = matrixFor(model)}
+              {@const index = model.classes.indexOf(label)}
+              {@const p = predictionFor(model)}
               <div class="cell sep">
-                {#if r && r.classes.length}
-                  {@const peak = peakOf(r.matrix)}
-                  <div class="mx" style="grid-template-columns: 40px repeat({r.classes.length}, 52px);">
-                    <div></div>
-                    {#each r.classes as c}<div class="mx-hd" title={c}>{shortLabel(c)}</div>{/each}
-                    {#each r.matrix as row, i}
-                      <div class="mx-rl" title={r.classes[i]}>{shortLabel(r.classes[i])}</div>
-                      {#each row as count, j}
-                        <div class="mx-c" class:diag={i === j} style={shade(count, peak, i === j)}>{count}</div>
-                      {/each}
-                    {/each}
-                  </div>
+                {#if index < 0}
+                  <span class="missing">— Klasse fehlt in diesem Modell</span>
+                {:else if !p}
+                  <span class="missing">–</span>
                 {:else}
-                  <span class="missing">noch nicht gemessen</span>
+                  {@const value = p.probs[index] ?? 0}
+                  <div class="bar-row">
+                    <div class="bar" class:win={p.topIndex === index}>
+                      <span style="width:{value * 100}%"></span>
+                      <i class="thr" style="left:{CLASS_THRESHOLD * 100}%"></i>
+                    </div>
+                    <span class="pct" class:dim={p.topIndex !== index}>{Math.round(value * 100)} %</span>
+                  </div>
                 {/if}
               </div>
             {/each}
-          {/if}
-        </div>
-          </div>
-        </div>
-
-        <!-- ---------- the images they disagreed on ---------- -->
-        {#if testRun && testRun.disagreements.length}
-          <section class="block">
-            <div class="block-head">
-              Bilder ohne Einigkeit
-              <span class="hint">
-                {testRun.images - testRun.agreed} insgesamt{testRun.disagreements.length < testRun.images - testRun.agreed
-                  ? `, die ersten ${testRun.disagreements.length} davon`
-                  : ''}
-              </span>
-            </div>
-            <div class="strip">
-              {#each testRun.disagreements as item (item.src)}
-                <button type="button" class="shot" onclick={() => pickImage(item.src)}>
-                  <img src={item.src} alt="" />
-                  <span class="shot-truth">war: {item.trueLabel}</span>
-                  {#each item.verdicts as verdict}
-                    {@const at = models.findIndex((m) => m.id === verdict.modelId)}
-                    <span class="verdict">
-                      <i class="dot" style="background:{COMPARE_COLORS[at % COMPARE_COLORS.length]}"></i>
-                      <b>{verdict.label}</b>
-                    </span>
-                  {/each}
-                </button>
-              {/each}
-            </div>
-            <div class="hint">
-              Ein Klick rechnet das Bild oben in den Spalten durch — dort stehen dann die Prozentwerte dazu.
-            </div>
-          </section>
+          {/each}
         {/if}
 
-        <!-- ---------- one chart, one curve per model ---------- -->
-        <section class="block chart">
-          <CompareChart {models} />
-        </section>
-
-        <div class="summary">
-          {#if bestByAccuracy}
-            Beste Genauigkeit: <b>{modelLabel(bestByAccuracy)}</b>
-          {/if}
-          {#if bestBySize && bestByAccuracy && bestBySize.id !== bestByAccuracy.id}
-            · kleinstes Modell: <b>{modelLabel(bestBySize)}</b>
-          {/if}
+        <!-- the numbers that belong to the model itself -->
+        <div class="group-head">
+          <span class="gh-inner">
+          Kennzahlen
+          <span class="gh-right">
+            <span class="hint">Abstand zur Referenz „{reference ? modelLabel(reference) : '–'}"</span>
+          </span>
+          </span>
         </div>
+
+        {#each metricRows as row (row.label)}
+          {@const bestAt = row.better ? bestIndexOf(row.values, row.better) : null}
+          <div class="rail" title={row.hint ?? ''}>{row.label}</div>
+          {#each models as model, i (model.id)}
+            {@const value = row.values[i]}
+            <div class="cell sep">
+              {#if value == null}
+                <span class="missing">–</span>
+              {:else}
+                <div class="val">
+                  {row.format(value)}
+                  {#if bestAt === i && row.bestLabel}<span class="best">{row.bestLabel}</span>{/if}
+                </div>
+                {@const delta = deltaText(row, value, i)}
+                {#if delta}<div class="delta">{delta}</div>{/if}
+              {/if}
+            </div>
+          {/each}
+        {/each}
+
+        <div class="rail">Häufigste Verwechslung</div>
+        {#each models as model (model.id)}
+          <div class="cell sep">
+            {#if worstPairOf(model)}
+              <div class="val plain">{worstPairOf(model)}</div>
+            {:else}
+              <span class="missing">nach dem Durchrechnen</span>
+            {/if}
+          </div>
+        {/each}
+
+        <!-- how they were set up -->
+        <div class="group-head">
+          <span class="gh-inner">
+          Einstellungen
+          <span class="gh-right">
+            <label class="switch-label">
+              <input type="checkbox" bind:checked={diffOnly} />
+              nur Unterschiede zeigen
+            </label>
+          </span>
+          </span>
+        </div>
+
+        {#if !shownSettingRows.length}
+          <div class="rail"></div>
+          <div class="cell sep" style="grid-column: 2 / -1;">
+            <span class="hint">Diese Modelle wurden mit denselben Einstellungen trainiert.</span>
+          </div>
+        {/if}
+        {#each shownSettingRows as row (row.label)}
+          {@const differs = new Set(row.values).size > 1}
+          <div class="rail" class:same={!differs}>{row.label}</div>
+          {#each models as model, i (model.id)}
+            <div class="cell sep">
+              <div class="val plain" class:diff={differs && row.values[i] !== row.values[0]}>{row.values[i]}</div>
+            </div>
+          {/each}
+        {/each}
+
+        <!-- where each of them loses which class -->
+        {#if anyMatrix}
+          <div class="group-head">
+          <span class="gh-inner">
+            Verwechslungen
+            <span class="gh-right"><span class="hint">Zeile = was es war, Spalte = was das Modell sagte</span></span>
+          </span>
+        </div>
+          <div class="rail">Matrix</div>
+          {#each models as model (model.id)}
+            {@const r = matrixFor(model)}
+            <div class="cell sep">
+              {#if r && r.classes.length}
+                {@const peak = peakOf(r.matrix)}
+                <div class="mx" style="grid-template-columns: 40px repeat({r.classes.length}, 52px);">
+                  <div></div>
+                  {#each r.classes as c}<div class="mx-hd" title={c}>{shortLabel(c)}</div>{/each}
+                  {#each r.matrix as row, i}
+                    <div class="mx-rl" title={r.classes[i]}>{shortLabel(r.classes[i])}</div>
+                    {#each row as count, j}
+                      <div class="mx-c" class:diag={i === j} style={shade(count, peak, i === j)}>{count}</div>
+                    {/each}
+                  {/each}
+                </div>
+              {:else}
+                <span class="missing">noch nicht gemessen</span>
+              {/if}
+            </div>
+          {/each}
+        {/if}
+      </div>
+        </div>
+      </div>
+
+      <!-- ---------- the images they disagreed on ---------- -->
+      {#if testRun && testRun.disagreements.length}
+        <section class="block">
+          <div class="block-head">
+            Bilder ohne Einigkeit
+            <span class="hint">
+              {testRun.images - testRun.agreed} insgesamt{testRun.disagreements.length < testRun.images - testRun.agreed
+                ? `, die ersten ${testRun.disagreements.length} davon`
+                : ''}
+            </span>
+          </div>
+          <div class="strip">
+            {#each testRun.disagreements as item (item.src)}
+              <button type="button" class="shot" onclick={() => pickImage(item.src)}>
+                <img src={item.src} alt="" />
+                <span class="shot-truth">war: {item.trueLabel}</span>
+                {#each item.verdicts as verdict}
+                  {@const at = models.findIndex((m) => m.id === verdict.modelId)}
+                  <span class="verdict">
+                    <i class="dot" style="background:{COMPARE_COLORS[at % COMPARE_COLORS.length]}"></i>
+                    <b>{verdict.label}</b>
+                  </span>
+                {/each}
+              </button>
+            {/each}
+          </div>
+          <div class="hint">
+            Ein Klick rechnet das Bild oben in den Spalten durch — dort stehen dann die Prozentwerte dazu.
+          </div>
+        </section>
       {/if}
-    </div>
-  {/snippet}
+
+      <!-- ---------- one chart, one curve per model ---------- -->
+      <section class="block chart">
+        <CompareChart {models} />
+      </section>
+
+      <div class="summary">
+        {#if bestByAccuracy}
+          Beste Genauigkeit: <b>{modelLabel(bestByAccuracy)}</b>
+        {/if}
+        {#if bestBySize && bestByAccuracy && bestBySize.id !== bestByAccuracy.id}
+          · kleinstes Modell: <b>{modelLabel(bestBySize)}</b>
+        {/if}
+      </div>
+    {/if}
+  </div>
 
   {#snippet actions()}
-    <Button onclick={() => (isOpen = false)}>Fertig</Button>
+    <Button bind:ref={doneButton} onclick={() => (isOpen = false)}>Fertig</Button>
   {/snippet}
-</Modal>
+</Dialog>
 
 <style lang="scss">
+  // The title's second line, kept out of the scrolling body below.
+  .dialog-sub {
+    flex: none;
+    margin-bottom: 16px;
+    font-size: 12px;
+    color: rgb(var(--md-on-surface-variant));
+  }
   .compare-body {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    padding: 4px 24px 20px;
+    padding-top: 4px;
   }
   .state {
     padding: 40px 0;

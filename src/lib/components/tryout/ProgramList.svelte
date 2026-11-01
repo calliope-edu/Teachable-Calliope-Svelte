@@ -12,8 +12,7 @@
   import { highestClassIndex } from '$lib/makecode/programFiles';
   import { activateModel } from '$lib/models';
   import { showNotification } from '$lib/stores/notifications';
-  import Dropdown from '$lib/components/ui/Dropdown.svelte';
-  import DropdownItem from '$lib/components/ui/DropdownItem.svelte';
+  import { IconButton, Menu, MenuItem } from '@calliope-edu/ui';
   import NoModelNotice from '$lib/components/NoModelNotice.svelte';
   import DeleteConfirmDialog, {
     type DeleteTarget
@@ -144,14 +143,15 @@
             >
               <div class="title">
                 {#if renamingId === p.id}
-                  <!-- svelte-ignore a11y_autofocus -->
+                  <!-- Focused on mount rather than through autofocus, which only acts
+                       while nothing else has focus — after the menu, its trigger has. -->
                   <input
                     class="title-edit"
                     bind:value={renameDraft}
                     onkeydown={onRenameKey}
                     onblur={commitRename}
                     onclick={(e) => e.stopPropagation()}
-                    autofocus
+                    {@attach (el) => el.focus()}
                   />
                 {:else}
                   <span class="title-text">{p.name}</span>
@@ -194,16 +194,16 @@
                 {/if}
               </div>
             </div>
-            <Dropdown placement="bottom-end">
-              {#snippet trigger()}
-                <button type="button" class="menu" aria-label="Aktionen" title="Mehr">⋯</button>
+            <Menu align="end">
+              {#snippet trigger({ props })}
+                <IconButton {...props} icon="more" label="Aktionen" size="s" />
               {/snippet}
-              {#snippet children()}
-                <!-- No "open" entry: clicking the row is what opens a program. -->
-                <DropdownItem onclick={() => startRename(p)}>Umbenennen</DropdownItem>
-                <DropdownItem onclick={() => handleDelete(p)}>Löschen</DropdownItem>
-              {/snippet}
-            </Dropdown>
+              <!-- No "open" entry: clicking the row is what opens a program. -->
+              <!-- After the menu has handed the focus back to its trigger, so the
+                   name field can take it. -->
+              <MenuItem onSelect={() => setTimeout(() => startRename(p))}>Umbenennen</MenuItem>
+              <MenuItem tone="negative" onSelect={() => handleDelete(p)}>Löschen</MenuItem>
+            </Menu>
           </div>
         </li>
       {/each}
@@ -250,7 +250,6 @@
   .edit-btn { @include entry-edit-btn; }
   .chip { @include entry-chip; }
   .meta { @include entry-meta; }
-  .menu { @include entry-menu-btn; }
   .empty { @include entry-empty; }
 
   .entry-row:hover .edit-btn,

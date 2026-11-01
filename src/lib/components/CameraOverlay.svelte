@@ -1,6 +1,6 @@
 <script lang="ts">
   import { showCameraOverlay } from '$lib/stores/app';
-  import CampusButton from '$lib/components/ui/CampusButton.svelte';
+  import { Button } from '@calliope-edu/ui';
   import {
     cameraFellBack,
     cameraLabel,
@@ -144,10 +144,10 @@
       {/if}
 
       <div class="actions">
-        <CampusButton variant="secondary" onclick={probe} disabled={working}>
+        <Button variant="secondary" onclick={probe} disabled={working}>
           {working ? 'Suche läuft …' : 'Erneut suchen'}
-        </CampusButton>
-        <CampusButton variant="primary" onclick={close}>OK</CampusButton>
+        </Button>
+        <Button onclick={close}>OK</Button>
       </div>
     </div>
   </div>

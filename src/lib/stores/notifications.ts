@@ -1,25 +1,24 @@
-import { writable } from 'svelte/store';
+import { toast } from '@calliope-edu/ui';
 
-export type Notification = { id: string; message: string; type?: 'info' | 'success' | 'error' | 'warning'; duration?: number };
+type NotificationType = 'info' | 'success' | 'error' | 'warning';
 
-export const notifications = writable<Notification[]>([]);
-
-export function showNotification(message: string, options?: { type?: 'info' | 'success' | 'error' | 'warning'; duration?: number }) {
-  const id = Math.random().toString(36).slice(2);
-  const n: Notification = { id, message, type: options?.type || 'info', duration: options?.duration || 4000 };
-  notifications.update(arr => [...arr, n]);
-  if (n.duration && n.duration > 0) {
-    setTimeout(() => {
-      notifications.update(arr => arr.filter(x => x.id !== id));
-    }, n.duration);
-  }
-  return id;
+/**
+ * Shows a toast through calliope-ui's <Toaster /> (mounted in the root layout).
+ * Returns its id for {@link hideNotification}. A duration of 0 keeps it until
+ * it is closed.
+ */
+export function showNotification(
+  message: string,
+  options?: { type?: NotificationType; duration?: number }
+) {
+  const duration = options?.duration === 0 ? Infinity : (options?.duration ?? 4000);
+  return toast[options?.type ?? 'info'](message, { duration });
 }
 
-export function hideNotification(id: string) {
-  notifications.update(arr => arr.filter(x => x.id !== id));
+export function hideNotification(id: string | number) {
+  toast.dismiss(id);
 }
 
 export function clearNotifications() {
-  notifications.set([]);
+  toast.dismiss();
 }

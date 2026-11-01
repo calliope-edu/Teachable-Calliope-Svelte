@@ -4,7 +4,7 @@
   import { isTraining } from '$lib/stores/app';
   import { activeModel } from '$lib/stores/projects';
   import ConfusionMatrix from '$lib/components/ConfusionMatrix.svelte';
-  import InfoTooltip from '$lib/components/ui/InfoTooltip.svelte';
+  import InfoTooltip from '$lib/components/InfoTooltip.svelte';
   import { cachedConfusion, confusionRunning, ensureConfusion } from '$lib/confusion';
   import { showNotification } from '$lib/stores/notifications';
 

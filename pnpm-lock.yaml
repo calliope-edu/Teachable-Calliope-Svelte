@@ -82,12 +82,6 @@ importers:
       svelte-apexcharts:
         specifier: ^1.0.2
         version: 1.0.2(apexcharts@5.16.0)
-      svelte-floating-ui:
-        specifier: ^1.6.2
-        version: 1.6.2
-      svelte-portal:
-        specifier: ^2.2.1
-        version: 2.2.1
       svelte-splitpanes:
         specifier: ^8.0.12
         version: 8.0.12(svelte@5.56.9(@typescript-eslint/types@8.67.0))
@@ -2555,12 +2549,6 @@ packages:
     peerDependenciesMeta:
       svelte:
         optional: true
-
-  svelte-floating-ui@1.6.2:
-    resolution: {integrity: sha512-EC+DZtBey50P6l3NSzNQWon3cip8a1bzwdpmCdc45kymqEWL4BKhPemAq7SQ9QLebDPaMECW6YodxFbs2d+O/w==}
-
-  svelte-portal@2.2.1:
-    resolution: {integrity: sha512-uF7is5sM4aq5iN7QF/67XLnTUvQCf2iiG/B1BHTqLwYVY1dsVmTeXZ/LeEyU6dLjApOQdbEG9lkqHzxiQtOLEQ==}
 
   svelte-sonner@1.2.2:
     resolution: {integrity: sha512-sHAvdhf9PNC7LMBmUSWRGPdxZn17HrW5ITsUKmF4SP9C3IZBE7B3rBw8BEztIiSDcTpEdZcKgmnN+BAhH4M8qQ==}
@@ -5131,12 +5119,6 @@ snapshots:
       semver: 7.8.5
     optionalDependencies:
       svelte: 5.56.9(@typescript-eslint/types@8.67.0)
-
-  svelte-floating-ui@1.6.2:
-    dependencies:
-      '@floating-ui/dom': 1.8.0
-
-  svelte-portal@2.2.1: {}
 
   svelte-sonner@1.2.2(svelte@5.56.9(@typescript-eslint/types@8.67.0)):
     dependencies:

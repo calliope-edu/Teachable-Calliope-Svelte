@@ -1,6 +1,5 @@
 <script lang="ts">
-  import Modal from '$lib/components/ui/Modal.svelte';
-  import CampusButton from '$lib/components/ui/CampusButton.svelte';
+  import { Button, Dialog } from '@calliope-edu/ui';
   import type { ProjectMode } from '$lib/stores/projects';
 
   let {
@@ -48,13 +47,20 @@
   }
 </script>
 
-<Modal title="Neues Projekt" {isOpen} onclose={cancel}>
+<!-- Dialog puts the caret into the name field on open: naming the project comes
+     before the button that creates it. -->
+<Dialog
+  title="Neues Projekt"
+  open={isOpen}
+  onOpenChange={(o) => {
+    if (!o) cancel();
+  }}
+>
   {#snippet children()}
     <div class="form">
       <label class="field">
         <span class="field-label">Name</span>
-        <!-- svelte-ignore a11y_autofocus -->
-        <input type="text" bind:value={name} onkeydown={onNameKey} autofocus />
+        <input type="text" bind:value={name} onkeydown={onNameKey} />
       </label>
 
       <div class="field">
@@ -120,10 +126,10 @@
   {/snippet}
 
   {#snippet actions()}
-    <CampusButton variant="secondary" onclick={cancel}>Abbrechen</CampusButton>
-    <CampusButton variant="primary" onclick={submit}>Projekt anlegen</CampusButton>
+    <Button variant="secondary" onclick={cancel}>Abbrechen</Button>
+    <Button onclick={submit}>Projekt anlegen</Button>
   {/snippet}
-</Modal>
+</Dialog>
 
 <style lang="scss">
   // Campus look: --color-* HSL tokens, 2px borders, 16px card radius, green

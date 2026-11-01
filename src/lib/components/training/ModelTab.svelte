@@ -31,10 +31,8 @@
   import { activateModel, importModelFile, modelLabel } from '$lib/models';
   import { createProgramForModel } from '$lib/programs';
   import { showNotification } from '$lib/stores/notifications';
-  import Dropdown from '$lib/components/ui/Dropdown.svelte';
-  import DropdownItem from '$lib/components/ui/DropdownItem.svelte';
-  import InfoTooltip from '$lib/components/ui/InfoTooltip.svelte';
-  import Button from '$lib/components/ui/Button.svelte';
+  import { Button, IconButton, Menu, MenuItem } from '@calliope-edu/ui';
+  import InfoTooltip from '$lib/components/InfoTooltip.svelte';
   import DeleteConfirmDialog, {
     type DeleteTarget
   } from '$lib/components/DeleteConfirmDialog.svelte';
@@ -280,34 +278,30 @@
         >
           Alle abwählen
         </button>
-        <Button variant="ghost" size="small" onclick={endCompare} aria-label="Vergleich verlassen" title="Vergleich verlassen">
-          ×
-        </Button>
+        <IconButton icon="close" label="Vergleich verlassen" size="s" onclick={endCompare} />
       {:else}
         <!-- Sits above the list because that is where its result appears: the run
              being composed, and afterwards its model, are the first entry. -->
         <button type="button" class="add-btn" onclick={startNewModel} disabled={$isTraining}>
           <span aria-hidden="true">+</span> Neues Modell
         </button>
-        <Dropdown placement="bottom-end">
-          {#snippet trigger()}
-            <Button variant="ghost" size="small" aria-label="Modell-Aktionen" title="Mehr Aktionen">⋯</Button>
+        <Menu align="end">
+          {#snippet trigger({ props })}
+            <IconButton {...props} icon="more" label="Modell-Aktionen" size="s" />
           {/snippet}
-          {#snippet children()}
-            <DropdownItem onclick={onExportModel} disabled={!hasSelectedModel}>
-              Modell exportieren
-            </DropdownItem>
-            <DropdownItem onclick={() => loadModelEl?.click()}>
-              Modell importieren
-            </DropdownItem>
-            <DropdownItem onclick={startCompare} disabled={$availableModels.length < MIN_COMPARED}>
-              Modelle vergleichen
-            </DropdownItem>
-            <DropdownItem onclick={onDeleteModel} disabled={!hasSelectedModel}>
-              Modell löschen
-            </DropdownItem>
-          {/snippet}
-        </Dropdown>
+          <MenuItem onSelect={onExportModel} disabled={!hasSelectedModel}>
+            Modell exportieren
+          </MenuItem>
+          <MenuItem onSelect={() => loadModelEl?.click()}>
+            Modell importieren
+          </MenuItem>
+          <MenuItem onSelect={startCompare} disabled={$availableModels.length < MIN_COMPARED}>
+            Modelle vergleichen
+          </MenuItem>
+          <MenuItem tone="negative" onSelect={onDeleteModel} disabled={!hasSelectedModel}>
+            Modell löschen
+          </MenuItem>
+        </Menu>
       {/if}
       <input
         bind:this={loadModelEl}
@@ -623,7 +617,7 @@
             {/if}
           </details>
           <div class="train-row">
-            <Button class="train-btn" fullWidth disabled={!readiness.ready} onclick={doTrain}>
+            <Button fullWidth disabled={!readiness.ready} onclick={doTrain}>
               Trainieren
             </Button>
           </div>
@@ -653,7 +647,7 @@
       <span class="hint">
         {MIN_COMPARED} bis {MAX_COMPARED} Modelle · {compareIds.length} ausgewählt
       </span>
-      <Button size="small" disabled={compareIds.length < MIN_COMPARED} onclick={openCompare}>
+      <Button size="s" disabled={compareIds.length < MIN_COMPARED} onclick={openCompare}>
         Vergleichen ({compareIds.length})
       </Button>
     </div>
@@ -908,9 +902,6 @@
     align-items: center;
     gap: 10px;
     margin-top: 12px;
-  }
-  .train-row :global(.train-btn) {
-    font-weight: 600;
   }
   .hint {
     margin-top: 6px;

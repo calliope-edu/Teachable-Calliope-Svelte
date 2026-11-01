@@ -97,7 +97,6 @@ msgid "Hinweise"
 msgstr "Hinweise"
 
 #: src/lib/components/Header.svelte
-#: src/lib/components/training/ProjectHeader.svelte
 #: src/lib/components/training/ProjectStartScreen.svelte
 msgid "Projekt exportiert"
 msgstr "Projekt exportiert"
@@ -112,7 +111,6 @@ msgstr "Zur Startseite"
 #: src/lib/components/training/ModelHistory.svelte
 #: src/lib/components/training/ModelHistory.svelte
 #: src/lib/components/training/ModelHistory.svelte
-#: src/lib/components/training/ProjectHeader.svelte
 #: src/lib/components/training/VideoPanel.svelte
 #: src/lib/components/training/VideoPanel.svelte
 #: src/lib/components/tryout/ProgramList.svelte
@@ -149,7 +147,6 @@ msgstr "Erstellen"
 msgid "Neue Klasse erstellen:"
 msgstr "Neue Klasse erstellen:"
 
-#: src/lib/components/DeleteConfirmDialog.svelte
 #: src/lib/components/ImportDialog.svelte
 #: src/lib/components/training/ModelTab.svelte
 #: src/lib/components/training/ModelTab.svelte
@@ -165,7 +162,6 @@ msgid "Importieren"
 msgstr "Importieren"
 
 #: src/lib/components/ImportDialog.svelte
-#: src/lib/components/training/ClassesTab.svelte
 msgid "Bilder importieren"
 msgstr "Bilder importieren"
 
@@ -194,16 +190,13 @@ msgstr "MakeCode Calliope Editor"
 msgid "Modell geladen"
 msgstr "Modell geladen"
 
-#: src/lib/components/training/ClassesTab.svelte
-#: src/lib/components/training/ClassesTab.svelte
 #: src/lib/components/training/ModelTab.svelte
 #: src/lib/components/training/ModelTab.svelte
 msgid "Fehler: "
 msgstr "Fehler: "
 
-#: src/lib/components/ModelPicker.svelte
-msgid "Kein Modell"
-msgstr "Kein Modell"
+#~ msgid "Kein Modell"
+#~ msgstr "Kein Modell"
 
 #: src/lib/components/DeleteConfirmDialog.svelte
 #: src/lib/components/apply/ApplySidebar.svelte
@@ -228,122 +221,92 @@ msgstr "Objekt"
 #~ msgid "Calliope nicht verbunden"
 #~ msgstr "Calliope nicht verbunden"
 
-#: src/lib/components/training/ClassesTab.svelte
-#: src/lib/components/training/ClassesTab.svelte
-msgid "Bitte zuerst eine Klasse wählen"
-msgstr "Bitte zuerst eine Klasse wählen"
+#~ msgid "Bitte zuerst eine Klasse wählen"
+#~ msgstr "Bitte zuerst eine Klasse wählen"
 
-#: src/lib/components/training/ClassesTab.svelte
-msgid "Kamera nicht verbunden"
-msgstr "Kamera nicht verbunden"
+#~ msgid "Kamera nicht verbunden"
+#~ msgstr "Kamera nicht verbunden"
 
-#: src/lib/components/training/ClassesTab.svelte
-msgid "Keine Bilder im ZIP gefunden"
-msgstr "Keine Bilder im ZIP gefunden"
+#~ msgid "Keine Bilder im ZIP gefunden"
+#~ msgstr "Keine Bilder im ZIP gefunden"
 
-#. 0: imgs.length
-#: src/lib/components/training/ClassesTab.svelte
-msgid "{0} Bilder importiert"
-msgstr "{0} Bilder importiert"
+#~ msgid "{0} Bilder importiert"
+#~ msgstr "{0} Bilder importiert"
 
-#. 0: images.length; 1: selectedClass
-#: src/lib/components/training/ClassesTab.svelte
-msgid "{0} Bilder importiert in \"{1}\""
-msgstr "{0} Bilder importiert in \"{1}\""
+#~ msgid "{0} Bilder importiert in \"{1}\""
+#~ msgstr "{0} Bilder importiert in \"{1}\""
 
 #~ msgid "Alle aufgenommenen Bilder aus allen Klassen löschen?"
 #~ msgstr "Alle aufgenommenen Bilder aus allen Klassen löschen?"
 
-#: src/lib/components/training/ClassesTab.svelte
-msgid "Alle Bilder gelöscht"
-msgstr "Alle Bilder gelöscht"
+#~ msgid "Alle Bilder gelöscht"
+#~ msgstr "Alle Bilder gelöscht"
 
-#: src/lib/components/training/ClassesTab.svelte
-msgid "Klassen-Menü"
-msgstr "Klassen-Menü"
+#~ msgid "Klassen-Menü"
+#~ msgstr "Klassen-Menü"
 
-#: src/lib/components/training/ClassesTab.svelte
-#: src/lib/components/training/ClassesTab.svelte
 #: src/lib/components/training/ModelTab.svelte
 #: src/lib/components/training/VideoPanel.svelte
 msgid "Mehr Aktionen"
 msgstr "Mehr Aktionen"
 
-#: src/lib/components/training/ClassesTab.svelte
-msgid "Alle herunterladen"
-msgstr "Alle herunterladen"
+#~ msgid "Alle herunterladen"
+#~ msgstr "Alle herunterladen"
 
-#: src/lib/components/training/ClassesTab.svelte
-msgid "Alle Klassen leeren"
-msgstr "Alle Klassen leeren"
+#~ msgid "Alle Klassen leeren"
+#~ msgstr "Alle Klassen leeren"
 
-#: src/lib/components/training/ClassesTab.svelte
 #: src/lib/components/training/ModelDetailsModal.svelte
 msgid "Klassen"
 msgstr "Klassen"
 
-#: src/lib/components/training/ClassesTab.svelte
 #: src/lib/components/training/VideoPanel.svelte
 #: src/lib/components/training/VideoPanel.svelte
 msgid "Neue Klasse hinzufügen"
 msgstr "Neue Klasse hinzufügen"
 
-#: src/lib/components/training/ClassesTab.svelte
-msgid "Klasse hinzufügen"
-msgstr "Klasse hinzufügen"
+#~ msgid "Klasse hinzufügen"
+#~ msgstr "Klasse hinzufügen"
 
-#: src/lib/components/training/ClassesTab.svelte
-msgid "Aufnahme stoppen"
-msgstr "Aufnahme stoppen"
+#~ msgid "Aufnahme stoppen"
+#~ msgstr "Aufnahme stoppen"
 
-#: src/lib/components/training/ClassesTab.svelte
-msgid "Aufnahme starten"
-msgstr "Aufnahme starten"
+#~ msgid "Aufnahme starten"
+#~ msgstr "Aufnahme starten"
 
-#: src/lib/components/training/ClassesTab.svelte
 #: src/lib/components/training/VideoPanel.svelte
 msgid "Klassen-Aktionen"
 msgstr "Klassen-Aktionen"
 
-#: src/lib/components/training/ClassesTab.svelte
 #: src/lib/components/training/VideoPanel.svelte
 msgid "Dateien herunterladen"
 msgstr "Dateien herunterladen"
 
-#: src/lib/components/training/ClassesTab.svelte
-msgid "Dateien importieren"
-msgstr "Dateien importieren"
+#~ msgid "Dateien importieren"
+#~ msgstr "Dateien importieren"
 
-#: src/lib/components/training/ClassesTab.svelte
 #: src/lib/components/training/VideoPanel.svelte
 msgid "Klasse leeren"
 msgstr "Klasse leeren"
 
 #: src/lib/components/DeleteConfirmDialog.svelte
-#: src/lib/components/training/ClassesTab.svelte
 #: src/lib/components/training/VideoPanel.svelte
 msgid "Klasse löschen"
 msgstr "Klasse löschen"
 
-#: src/lib/components/training/ClassesTab.svelte
-msgid "Halte die Taste gedrückt"
-msgstr "Halte die Taste gedrückt"
+#~ msgid "Halte die Taste gedrückt"
+#~ msgstr "Halte die Taste gedrückt"
 
-#: src/lib/components/training/ClassesTab.svelte
-msgid "Zum Modell-Tab wechseln"
-msgstr "Zum Modell-Tab wechseln"
+#~ msgid "Zum Modell-Tab wechseln"
+#~ msgstr "Zum Modell-Tab wechseln"
 
-#: src/lib/components/training/ClassesTab.svelte
-msgid "Mindestens 3 Klassen erforderlich"
-msgstr "Mindestens 3 Klassen erforderlich"
+#~ msgid "Mindestens 3 Klassen erforderlich"
+#~ msgstr "Mindestens 3 Klassen erforderlich"
 
-#. 0: $classes.length
-#: src/lib/components/training/ClassesTab.svelte
-msgid "Mindestens 3 Klassen erforderlich ({0}/3)"
-msgstr "Mindestens 3 Klassen erforderlich ({0}/3)"
+#~ msgid "Mindestens 3 Klassen erforderlich ({0}/3)"
+#~ msgstr "Mindestens 3 Klassen erforderlich ({0}/3)"
 
 #: src/lib/components/NoModelNotice.svelte
-#: src/lib/components/training/ClassesTab.svelte
 #: src/lib/components/training/TrainingProgress.svelte
 msgid "Modell trainieren"
 msgstr "Modell trainieren"
@@ -538,7 +501,6 @@ msgstr "Verlauf pro Epoche"
 
 #: src/lib/components/CameraOverlay.svelte
 #: src/lib/components/training/ModelDetailsModal.svelte
-#: src/lib/components/ui/Modal.svelte
 #: src/routes/tryout/+page.svelte
 msgid "Schließen"
 msgstr "Schließen"
@@ -787,47 +749,37 @@ msgstr "Feature-Extraktor <0/>"
 #~ msgid "Trainiert am <0/>"
 #~ msgstr "Trainiert am <0/>"
 
-#: src/lib/components/training/ProjectHeader.svelte
 #: src/lib/components/training/ProjectStartScreen.svelte
 msgid "Projekt importiert"
 msgstr "Projekt importiert"
 
 #: src/lib/components/NoModelNotice.svelte
-#: src/lib/components/training/ProjectHeader.svelte
 #: src/lib/components/training/ProjectStartScreen.svelte
 msgid "Modell importiert"
 msgstr "Modell importiert"
 
-#. 0: $currentProject.name
-#: src/lib/components/training/ProjectHeader.svelte
-msgid "Projekt \"{0}\" wirklich löschen?"
-msgstr "Projekt \"{0}\" wirklich löschen?"
+#~ msgid "Projekt \"{0}\" wirklich löschen?"
+#~ msgstr "Projekt \"{0}\" wirklich löschen?"
 
-#: src/lib/components/training/ProjectHeader.svelte
 #: src/lib/components/training/ProjectStartScreen.svelte
 msgid "Projekt gelöscht"
 msgstr "Projekt gelöscht"
 
-#: src/lib/components/training/ProjectHeader.svelte
-msgid "Zurück zur Übersicht"
-msgstr "Zurück zur Übersicht"
+#~ msgid "Zurück zur Übersicht"
+#~ msgstr "Zurück zur Übersicht"
 
-#: src/lib/components/training/ProjectHeader.svelte
-msgid "Zurück"
-msgstr "Zurück"
+#~ msgid "Zurück"
+#~ msgstr "Zurück"
 
-#: src/lib/components/training/ProjectHeader.svelte
-msgid "Projekt-Menü"
-msgstr "Projekt-Menü"
+#~ msgid "Projekt-Menü"
+#~ msgstr "Projekt-Menü"
 
 #: src/lib/components/Header.svelte
-#: src/lib/components/training/ProjectHeader.svelte
 #: src/lib/components/training/ProjectStartScreen.svelte
 msgid "Projekt herunterladen"
 msgstr "Projekt herunterladen"
 
 #: src/lib/components/DeleteConfirmDialog.svelte
-#: src/lib/components/training/ProjectHeader.svelte
 #: src/lib/components/training/ProjectStartScreen.svelte
 msgid "Projekt löschen"
 msgstr "Projekt löschen"
@@ -1242,16 +1194,11 @@ msgstr "Abstand (ms)"
 msgid "Start"
 msgstr "Start"
 
-#: src/lib/components/ui/Dropdown.svelte
-#: src/lib/components/ui/Dropdown.svelte
-#: src/lib/components/ui/Dropdown.svelte
-msgid "Close dropdown"
-msgstr "Close dropdown"
+#~ msgid "Close dropdown"
+#~ msgstr "Close dropdown"
 
-#: src/lib/components/ui/InfoTooltip.svelte
-#: src/lib/components/ui/InfoTooltip.svelte
-msgid "Info"
-msgstr "Info"
+#~ msgid "Info"
+#~ msgstr "Info"
 
 #. 0: topIndex + 1
 #. 0: n
@@ -1307,20 +1254,15 @@ msgstr "<0/> Genauigkeit <1/>"
 msgid "<0/> Verlust <1/>"
 msgstr "<0/> Verlust <1/>"
 
-#. 0: roiSizeLabel(model.roi)
-#: src/lib/components/ModelPicker.svelte
-msgid "· Bereich {0}"
-msgstr "· Bereich {0}"
+#~ msgid "· Bereich {0}"
+#~ msgstr "· Bereich {0}"
 
 #: src/lib/components/Header.svelte
-#: src/lib/components/ModelPicker.svelte
 msgid "· importiert"
 msgstr "· importiert"
 
-#. 0: model.classes.length
-#: src/lib/components/ModelPicker.svelte
-msgid "{0} Klassen <0/> <1/> <2/>"
-msgstr "{0} Klassen <0/> <1/> <2/>"
+#~ msgid "{0} Klassen <0/> <1/> <2/>"
+#~ msgstr "{0} Klassen <0/> <1/> <2/>"
 
 #: src/lib/components/NoModelNotice.svelte
 msgid "Noch kein Modell vorhanden"
@@ -4194,4 +4136,8 @@ msgstr "Bilderreihe statt Liste, Bild über die ganze Breite"
 #: src/lib/components/apply/ApplySidebar.svelte
 msgid "L stellt die Klassen als Bilderreihe dar, mit einem Balken unter jedem Bild statt einer Liste — dafür braucht es „Alle Klassen“ und ein einzelnes Modell. Bei mehreren Modellen füllt das Bild stattdessen die Breite jeder Karte."
 msgstr "L stellt die Klassen als Bilderreihe dar, mit einem Balken unter jedem Bild statt einer Liste — dafür braucht es „Alle Klassen“ und ein einzelnes Modell. Bei mehreren Modellen füllt das Bild stattdessen die Breite jeder Karte."
+
+#: src/lib/components/training/VideoPanel.svelte
+msgid "Halten zum Aufnehmen — legt die Klasse an"
+msgstr "Halten zum Aufnehmen — legt die Klasse an"
 "
