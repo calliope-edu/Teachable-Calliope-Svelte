@@ -1,4 +1,12 @@
 <script lang="ts">
+  // calliope-ui: fonts its components use (Roboto, Roboto Condensed for headings
+  // and button labels), its --cui-* tokens and base styles. All of it sits in
+  // @layer calliope.*, so the app's own unlayered CSS below still wins. styles.css
+  // brings tokens.css with it. Imported first so the layers are declared before
+  // global.scss.
+  import '@fontsource-variable/roboto';
+  import '@fontsource-variable/roboto-condensed';
+  import '@calliope-edu/ui/styles.css';
   import '$lib/styles/global.scss';
   import favicon from '$lib/assets/favicon.svg';
   import Header from '$lib/components/Header.svelte';

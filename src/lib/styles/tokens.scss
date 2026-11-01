@@ -1,50 +1,72 @@
 // Design tokens — Calliope Teachable Machine
 // Uses CSS custom properties with RGB triplets for rgba() compositing
+//
+// Mapped onto the calliope-ui tokens (@calliope-edu/ui; tokens.css and
+// styles.css are loaded in the root layout). Every value notes its --cui-*
+// counterpart. Where the token has the same value, it is derived from it; where
+// it differs, today's value stays and the difference is noted ("differs"):
+// visible changes come in their own PRs. The --md-* colours are read as RGB
+// channels (rgb(var(--md-x)) / rgba(var(--md-x), a)) and the campus --color-*
+// ones as HSL channels, so the derived values are channels computed from the
+// static Sass tokens.
+
+@use 'sass:color';
+@use '@calliope-edu/ui/tokens.scss' as cui;
+
+@function rgb-channels($c) {
+  @return color.channel($c, 'red', $space: rgb), color.channel($c, 'green', $space: rgb),
+    color.channel($c, 'blue', $space: rgb);
+}
+
+@function hsl-channels($c) {
+  @return color.channel($c, 'hue', $space: hsl) color.channel($c, 'saturation', $space: hsl)
+    color.channel($c, 'lightness', $space: hsl);
+}
 
 :root {
   // Primary — black
-  --md-primary: 0, 0, 0;
-  --md-on-primary: 255, 255, 255;
-  --md-primary-container: 0, 0, 0, 0.2;
+  --md-primary: #{rgb-channels(cui.$cui-palette-black)}; // = --cui-palette-black
+  --md-on-primary: #{rgb-channels(cui.$cui-palette-white)}; // = --cui-palette-white
+  --md-primary-container: #{rgb-channels(cui.$cui-palette-black)}, 0.2; // --cui-palette-black at 20%
 
   // Secondary — Calliope blue
-  --md-secondary: 67, 160, 219;
-  --md-on-secondary: 255, 255, 255;
-  --md-secondary-container: 173, 245, 76;
-  --md-on-secondary-container: 8, 37, 52;
+  --md-secondary: 67, 160, 219; // #43A0DB; --cui-palette-blue #3B82F6 (differs)
+  --md-on-secondary: #{rgb-channels(cui.$cui-palette-white)}; // = --cui-palette-white
+  --md-secondary-container: 173, 245, 76; // #ADF54C; --cui-palette-lime #98F404 (differs)
+  --md-on-secondary-container: 8, 37, 52; // #082534; --cui-palette-ink #1B1C1D (differs)
 
   // Tertiary — Calliope neon green
-  --md-tertiary: 187, 239, 83;
-  --md-on-tertiary: 0, 0, 0;
-  --md-tertiary-container: 187, 239, 83;
+  --md-tertiary: 187, 239, 83; // #BBEF53; --cui-palette-lime #98F404 (differs)
+  --md-on-tertiary: #{rgb-channels(cui.$cui-palette-black)}; // = --cui-palette-black
+  --md-tertiary-container: 187, 239, 83; // #BBEF53; --cui-palette-lime #98F404 (differs)
 
   // Hover
-  --md-hover: 152, 163, 167;
+  --md-hover: 152, 163, 167; // #98A3A7; no palette value (--cui-action-hover replaces it)
 
   // Error
-  --md-error: 186, 26, 26;
-  --md-on-error: 255, 255, 255;
-  --md-error-container: 255, 218, 214;
+  --md-error: 186, 26, 26; // #BA1A1A; --cui-palette-red #E53F4B (differs)
+  --md-on-error: #{rgb-channels(cui.$cui-palette-white)}; // = --cui-palette-white
+  --md-error-container: 255, 218, 214; // #FFDAD6; no palette value (--cui-status-error-fill with an icon replaces it)
 
   // Surface
-  --md-surface: 255, 255, 255;
-  --md-on-surface: 28, 27, 31;
-  --md-surface-variant: 232, 234, 237;
-  --md-on-surface-variant: 70, 70, 79;
-  --md-outline: 118, 118, 128;
-  --md-outline-variant: 202, 204, 211;
+  --md-surface: #{rgb-channels(cui.$cui-palette-white)}; // = --cui-palette-white (--cui-surface-raised)
+  --md-on-surface: 28, 27, 31; // #1C1B1F; --cui-palette-ink #1B1C1D (differs)
+  --md-surface-variant: 232, 234, 237; // #E8EAED; --cui-palette-mist #E8EDEB (differs)
+  --md-on-surface-variant: 70, 70, 79; // #46464F; --cui-text-muted (ink at 70%, differs)
+  --md-outline: 118, 118, 128; // #767680; --cui-border-control (ink at 60%, differs)
+  --md-outline-variant: 202, 204, 211; // #CACCD3; --cui-border-subtle #E8EDEB (differs)
 
   // Background
-  --md-background: 250, 250, 253;
-  --md-on-background: 28, 27, 31;
+  --md-background: 250, 250, 253; // #FAFAFD; --cui-surface-page #FFFFFF (differs)
+  --md-on-background: 28, 27, 31; // #1C1B1F; --cui-palette-ink #1B1C1D (differs)
 
-  // Elevation shadows
+  // Elevation shadows; --cui-shadow-menu / --cui-shadow-dialog (differ)
   --md-elevation-1: 0 1px 3px 1px rgba(0, 0, 0, 0.15), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
   --md-elevation-2: 0 2px 6px 2px rgba(0, 0, 0, 0.15), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
   --md-elevation-3: 0 4px 8px 3px rgba(0, 0, 0, 0.15), 0 1px 3px 0 rgba(0, 0, 0, 0.3);
 
   // Typography
-  --md-font: 'Inter', system-ui, -apple-system, sans-serif;
+  --md-font: 'Inter', system-ui, -apple-system, sans-serif; // --cui-font-family-sans is Roboto (differs)
   --md-font-size-body: 14px;
   --md-line-height-body: 20px;
   --md-font-size-label: 14px;
@@ -52,13 +74,13 @@
   --md-line-height-title: 24px;
 
   // Shape
-  --md-radius-sm: 8px;
-  --md-radius-md: 12px;
-  --md-radius-lg: 16px;
-  --md-radius-xl: 28px;
+  --md-radius-sm: #{cui.$cui-radius-lg}; // 8px = --cui-radius-lg
+  --md-radius-md: #{cui.$cui-radius-xl}; // 12px = --cui-radius-xl
+  --md-radius-lg: 16px; // no radius token
+  --md-radius-xl: 28px; // --cui-radius-dialog 20px (differs)
 
   // Brand green button
-  --btn-green: hsl(83, 100%, 48%);
+  --btn-green: hsl(83, 100%, 48%); // #98F600 (renders #97F500); --cui-palette-lime #98F404 (differs)
   --btn-green-hover: hsl(83, 100%, 58%);
   --header-height: 50px;
 
@@ -81,33 +103,33 @@
   --color-cyan-hue: 181;      // #42C9CB calliope brand/cyan
 
   // Neutral scale
-  --color-neutral-0:   var(--color-light-hue) 0% 98%;    // #FAFAFA
-  --color-neutral-10:  var(--color-accent-hue) 12% 92%;  // #E8EDEB
-  --color-neutral-50:  var(--color-neutral-hue) 12% 61%; // #90A4A8
-  --color-neutral-100: var(--color-primary-hue) 4% 11%;  // #1B1C1D
+  --color-neutral-0:   var(--color-light-hue) 0% 98%;    // #FAFAFA; --cui-palette-white #FFFFFF (differs)
+  --color-neutral-10:  #{hsl-channels(cui.$cui-palette-mist)}; // #E8EDEB = --cui-palette-mist
+  --color-neutral-50:  var(--color-neutral-hue) 12% 61%; // #90A4A8; no palette value (--cui-text-muted / --cui-border-control replace it)
+  --color-neutral-100: #{hsl-channels(cui.$cui-palette-ink)}; // #1B1C1D = --cui-palette-ink
 
   // Green scale (success/online/active)
   --color-green-10:  calc(var(--color-green-hue) - 3) 100% 95%;
   --color-green-50:  calc(var(--color-green-hue) - 2) 100% 70%;
-  --color-green-100: var(--color-green-hue) 100% 48%;           // #98F600
+  --color-green-100: var(--color-green-hue) 100% 48%;           // #98F600; --cui-palette-lime #98F404 (differs)
   --color-green-200: calc(var(--color-green-hue) + 2) 100% 35%;
 
   // Red scale (error/offline/danger)
   --color-red-10:  calc(var(--color-red-hue) + 4) 76% 95%;
   --color-red-50:  calc(var(--color-red-hue) + 2) 76% 70%;
-  --color-red-100: var(--color-red-hue) 76% 57%;               // #E53F4B
+  --color-red-100: var(--color-red-hue) 76% 57%;               // #E53F4B (renders #E53E49); --cui-palette-red #E53F4B (differs)
   --color-red-200: calc(var(--color-red-hue) - 2) 76% 40%;
 
   // Blue scale (info/interactive)
   --color-blue-10:  calc(var(--color-blue-hue) + 3) 91% 95%;
   --color-blue-50:  calc(var(--color-blue-hue) + 2) 91% 75%;
-  --color-blue-100: var(--color-blue-hue) 91% 60%;             // #3B82F6
+  --color-blue-100: var(--color-blue-hue) 91% 60%;             // #3B82F6 (renders #3C83F6); --cui-palette-blue #3B82F6 (differs)
   --color-blue-200: calc(var(--color-blue-hue) - 2) 91% 45%;
 
   // Cyan scale (brand/calliope)
   --color-cyan-10:  calc(var(--color-cyan-hue) + 2) 57% 95%;
   --color-cyan-50:  calc(var(--color-cyan-hue) + 1) 57% 75%;
-  --color-cyan-100: var(--color-cyan-hue) 57% 53%;             // #42C9CB
+  --color-cyan-100: var(--color-cyan-hue) 57% 53%;             // #42C9CB; --cui-palette-teal #42C8C8 (differs)
   --color-cyan-200: calc(var(--color-cyan-hue) - 1) 57% 38%;
 
   // Semantic aliases
@@ -119,5 +141,5 @@
   --color-bg-inverse:     var(--color-neutral-100);
   --color-border-primary:   var(--color-neutral-10);
   --color-border-secondary: var(--color-neutral-50);
-  --color-border-focus:     var(--color-cyan-100);
+  --color-border-focus:     var(--color-cyan-100); // --cui-focus-ring #1D8286 (differs)
 }

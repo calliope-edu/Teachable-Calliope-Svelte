@@ -65,9 +65,12 @@
 	},
 	"dependencies": {
 		"@calliope-edu/mini-connection-widget": "github:calliope-edu/mini-connection-widget#47e0c1b2d4106c679d1fa7233d0fa1bc9f205a1a",
+		"@calliope-edu/ui": "github:calliope-edu/calliope-ui#cdf3e33d6b8ac6ac0e7bb2864b9798900f420060",
 		"@capacitor-community/bluetooth-le": "^7.3.0",
 		"@capacitor/core": "^7.4.4",
 		"@capacitor/filesystem": "^7.1.6",
+		"@fontsource-variable/roboto": "^5.3.0",
+		"@fontsource-variable/roboto-condensed": "^5.3.0",
 		"@microbit/capacitor-community-nordic-dfu": "v7.0.0-microbit.4",
 		"@microbit/makecode-embed": "^0.6.0",
 		"@microbit/microbit-connection": "1.0.0-beta.1",
