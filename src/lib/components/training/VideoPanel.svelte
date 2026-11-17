@@ -37,9 +37,7 @@
   } from '$lib/machine';
   import { cameraMirror, selectedCameraId } from '$lib/stores/camera';
   import { showNotification } from '$lib/stores/notifications';
-  import Button from '$lib/components/ui/Button.svelte';
-  import Dropdown from '$lib/components/ui/Dropdown.svelte';
-  import DropdownItem from '$lib/components/ui/DropdownItem.svelte';
+  import { Button, IconButton, Menu, MenuItem, Popover, Tooltip } from '@calliope-edu/ui';
   import DeleteConfirmDialog, {
     type DeleteTarget
   } from '$lib/components/DeleteConfirmDialog.svelte';
@@ -905,7 +903,7 @@
           </span>
           {#if $classifierModel}
             <span class="mi-head-actions">
-              <Button variant="ghost" size="small" onclick={() => (detailsOpen = true)}>
+              <Button variant="secondary" size="s" onclick={() => (detailsOpen = true)}>
                 Details…
               </Button>
             </span>
@@ -1162,13 +1160,14 @@
         <div class="prep-class">
           <div class="prep-class-head">
             {#if editingClass === cls}
-              <!-- svelte-ignore a11y_autofocus -->
+              <!-- Focused on mount rather than through autofocus, which only acts
+                   while nothing else has focus — after the menu, its trigger has. -->
               <input
                 class="class-name-edit"
                 bind:value={editDraft}
                 onkeydown={onEditKey}
                 onblur={commitEditClass}
-                autofocus
+                {@attach (el) => el.focus()}
               />
             {:else}
               <!-- The cover, right where the class is named — the one place it is
@@ -1195,18 +1194,18 @@
                 ? `Erst ab ${MIN_EXAMPLES_PER_CLASS} Bildern wird diese Klasse mittrainiert`
                 : `${imgs.length} Bilder`}
             >{imgs.length}</span>
-            <Dropdown placement="bottom-end">
-              {#snippet trigger()}
-                <Button variant="ghost" size="small" aria-label="Klassen-Aktionen" title="Mehr Aktionen">⋯</Button>
+            <Menu align="end">
+              {#snippet trigger({ props })}
+                <IconButton {...props} icon="more" label="Klassen-Aktionen" size="s" />
               {/snippet}
-              {#snippet children()}
-                <DropdownItem onclick={() => startEditClass(cls)}>Umbenennen</DropdownItem>
-                <DropdownItem onclick={() => (thumbPickClass = cls)}>Klassenbild wählen</DropdownItem>
-                <DropdownItem onclick={() => downloadClassImages(cls, imgs)}>Dateien herunterladen</DropdownItem>
-                <DropdownItem onclick={() => confirmClear(cls)}>Klasse leeren</DropdownItem>
-                <DropdownItem onclick={() => confirmDelete(cls)}>Klasse löschen</DropdownItem>
-              {/snippet}
-            </Dropdown>
+              <!-- Deferred: the closing menu hands focus back to its trigger, which
+                   would otherwise blur the name field the moment it appears. -->
+              <MenuItem onSelect={() => setTimeout(() => startEditClass(cls))}>Umbenennen</MenuItem>
+              <MenuItem onSelect={() => (thumbPickClass = cls)}>Klassenbild wählen</MenuItem>
+              <MenuItem onSelect={() => downloadClassImages(cls, imgs)}>Dateien herunterladen</MenuItem>
+              <MenuItem tone="negative" onSelect={() => confirmClear(cls)}>Klasse leeren</MenuItem>
+              <MenuItem tone="negative" onSelect={() => confirmDelete(cls)}>Klasse löschen</MenuItem>
+            </Menu>
           </div>
 
           {#if selectionClass === cls && selectedIdx.size}
@@ -1266,24 +1265,30 @@
                 <div class="prep-class-empty">Keine Bilder</div>
               {/if}
             </div>
-            <Dropdown triggerMode={'hover'} styling={'basic'}>
-              {#snippet trigger()}
+            <Tooltip text={advancedRunningClass === cls ? 'Klicken zum Abbrechen' : 'Halten zum Aufnehmen'}>
+              {#snippet trigger({ props })}
+                <!-- The own pointer handlers replace the tooltip's, so they hand
+                     the event on first: that is what closes the tooltip. -->
                 <button
+                  {...props}
                   type="button"
                   class="record-btn"
                   class:recording={capturingClass === cls || advancedRunningClass === cls}
                   class:cancel={advancedRunningClass === cls}
                   aria-label={advancedRunningClass === cls ? 'Serienaufnahme abbrechen' : 'Bild aufnehmen'}
-                  title={advancedRunningClass === cls ? 'Klicken zum Abbrechen' : 'Halten zum Aufnehmen'}
                   disabled={!!advancedRunningClass && advancedRunningClass !== cls}
                   onpointerdown={(e) => {
+                    (props.onpointerdown as ((e: PointerEvent) => void) | undefined)?.(e);
                     // While a series is running for this class the button is a
                     // cancel button — don't start a manual capture on top of it.
                     if (advancedRunningClass === cls) { cancelAdvanced(); return; }
                     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
                     startRecord(cls);
                   }}
-                  onpointerup={stopRecord}
+                  onpointerup={(e) => {
+                    (props.onpointerup as ((e: PointerEvent) => void) | undefined)?.(e);
+                    stopRecord();
+                  }}
                   onpointercancel={stopRecord}
                 >
                   <span class="record-dot"></span>
@@ -1296,37 +1301,33 @@
                   {/if}
                 </button>
               {/snippet}
-              {advancedRunningClass === cls ? 'Klicken zum Abbrechen' : 'Halten zum Aufnehmen'}
-            </Dropdown>
-            <Dropdown minWidth="260px" closeOnClick={false}>
-              {#snippet trigger()}
-                <Button variant="ghost" size="small" aria-label="Erweiterte Aufnahme" title="Erweiterte Aufnahme">Serie</Button>
+            </Tooltip>
+            <Popover title="Erweiterte Aufnahme" align="end">
+              {#snippet trigger({ props })}
+                <Button {...props} variant="secondary" size="s">Serie</Button>
               {/snippet}
-              {#snippet children()}
-                <div class="adv-popover">
-                  <div class="adv-title">Erweiterte Aufnahme</div>
-                  <label class="adv-row">
-                    <span>Verzögerung vor Start (s)</span>
-                    <input type="number" min="0" max="30" bind:value={advDelaySec} />
-                  </label>
-                  <label class="adv-row">
-                    <span>Anzahl Bilder</span>
-                    <input type="number" min="1" max="500" bind:value={advCount} />
-                  </label>
-                  <label class="adv-row">
-                    <span>Abstand (ms)</span>
-                    <input type="number" min="50" max="5000" step="50" bind:value={advIntervalMs} />
-                  </label>
-                  <div class="adv-actions">
-                    {#if advancedRunningClass === cls}
-                      <button class="adv-btn danger" type="button" onclick={cancelAdvanced}>Abbrechen</button>
-                    {:else}
-                      <button class="adv-btn primary" type="button" onclick={() => startAdvanced(cls)} disabled={!!advancedRunningClass}>Start</button>
-                    {/if}
-                  </div>
+              <div class="adv-popover">
+                <label class="adv-row">
+                  <span>Verzögerung vor Start (s)</span>
+                  <input type="number" min="0" max="30" bind:value={advDelaySec} />
+                </label>
+                <label class="adv-row">
+                  <span>Anzahl Bilder</span>
+                  <input type="number" min="1" max="500" bind:value={advCount} />
+                </label>
+                <label class="adv-row">
+                  <span>Abstand (ms)</span>
+                  <input type="number" min="50" max="5000" step="50" bind:value={advIntervalMs} />
+                </label>
+                <div class="adv-actions">
+                  {#if advancedRunningClass === cls}
+                    <button class="adv-btn danger" type="button" onclick={cancelAdvanced}>Abbrechen</button>
+                  {:else}
+                    <button class="adv-btn primary" type="button" onclick={() => startAdvanced(cls)} disabled={!!advancedRunningClass}>Start</button>
+                  {/if}
                 </div>
-              {/snippet}
-            </Dropdown>
+              </div>
+            </Popover>
           </div>
         </div>
       {/each}
@@ -1356,57 +1357,59 @@
               {/if}
             </span>
           </div>
-          <Dropdown triggerMode={'hover'} styling={'basic'}>
-            {#snippet trigger()}
+          <Tooltip text="Halten zum Aufnehmen — legt die Klasse an">
+            {#snippet trigger({ props })}
               <button
+                {...props}
                 type="button"
                 class="record-btn"
                 class:recording={ghostRecording}
                 aria-label="Neue Klasse aufnehmen"
-                title="Halten zum Aufnehmen"
                 disabled={!!advancedRunningClass}
-                onpointerdown={startGhostRecord}
-                onpointerup={stopGhostRecord}
+                onpointerdown={(e) => {
+                  (props.onpointerdown as ((e: PointerEvent) => void) | undefined)?.(e);
+                  startGhostRecord(e);
+                }}
+                onpointerup={(e) => {
+                  (props.onpointerup as ((e: PointerEvent) => void) | undefined)?.(e);
+                  stopGhostRecord();
+                }}
                 onpointercancel={stopGhostRecord}
               >
                 <span class="record-dot"></span>
               </button>
             {/snippet}
-            Halten zum Aufnehmen — legt die Klasse an
-          </Dropdown>
-          <Dropdown minWidth="260px" closeOnClick={false}>
-            {#snippet trigger()}
-              <Button variant="ghost" size="small" aria-label="Erweiterte Aufnahme" title="Erweiterte Aufnahme">Serie</Button>
+          </Tooltip>
+          <Popover title="Erweiterte Aufnahme" align="end">
+            {#snippet trigger({ props })}
+              <Button {...props} variant="secondary" size="s">Serie</Button>
             {/snippet}
-            {#snippet children()}
-              <div class="adv-popover">
-                <div class="adv-title">Erweiterte Aufnahme</div>
-                <label class="adv-row">
-                  <span>Verzögerung vor Start (s)</span>
-                  <input type="number" min="0" max="30" bind:value={advDelaySec} />
-                </label>
-                <label class="adv-row">
-                  <span>Anzahl Bilder</span>
-                  <input type="number" min="1" max="500" bind:value={advCount} />
-                </label>
-                <label class="adv-row">
-                  <span>Abstand (ms)</span>
-                  <input type="number" min="50" max="5000" step="50" bind:value={advIntervalMs} />
-                </label>
-                <div class="adv-actions">
-                  {#if advancedRunningClass}
-                    <button class="adv-btn danger" type="button" onclick={cancelAdvanced}>Abbrechen</button>
-                  {:else}
-                    <button
-                      class="adv-btn primary"
-                      type="button"
-                      onclick={() => startAdvanced(commitNewClass())}
-                    >Start</button>
-                  {/if}
-                </div>
+            <div class="adv-popover">
+              <label class="adv-row">
+                <span>Verzögerung vor Start (s)</span>
+                <input type="number" min="0" max="30" bind:value={advDelaySec} />
+              </label>
+              <label class="adv-row">
+                <span>Anzahl Bilder</span>
+                <input type="number" min="1" max="500" bind:value={advCount} />
+              </label>
+              <label class="adv-row">
+                <span>Abstand (ms)</span>
+                <input type="number" min="50" max="5000" step="50" bind:value={advIntervalMs} />
+              </label>
+              <div class="adv-actions">
+                {#if advancedRunningClass}
+                  <button class="adv-btn danger" type="button" onclick={cancelAdvanced}>Abbrechen</button>
+                {:else}
+                  <button
+                    class="adv-btn primary"
+                    type="button"
+                    onclick={() => startAdvanced(commitNewClass())}
+                  >Start</button>
+                {/if}
               </div>
-            {/snippet}
-          </Dropdown>
+            </div>
+          </Popover>
         </div>
       </div>
     </div>
@@ -2366,16 +2369,10 @@
     }
   }
   .adv-popover {
-    padding: 12px 14px;
     display: flex;
     flex-direction: column;
     gap: 8px;
     color: rgb(var(--md-on-surface));
-  }
-  .adv-title {
-    font-weight: 600;
-    font-size: 13px;
-    margin-bottom: 2px;
   }
   .adv-row {
     display: flex;

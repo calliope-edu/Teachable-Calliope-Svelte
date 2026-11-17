@@ -1,7 +1,6 @@
 <script lang="ts">
-  import Modal from '$lib/components/ui/Modal.svelte';
-  import InfoTooltip from '$lib/components/ui/InfoTooltip.svelte';
-  import Button from '$lib/components/ui/Button.svelte';
+  import { Button, Dialog } from '@calliope-edu/ui';
+  import InfoTooltip from '$lib/components/InfoTooltip.svelte';
   import ModelCharts from './ModelCharts.svelte';
   import EpochChart from './EpochChart.svelte';
   import { examples, setTrainingOptions, setDraftRoi } from '$lib/stores';
@@ -332,23 +331,23 @@
   });
 </script>
 
-<Modal title="Modell-Details" {isOpen} size="fullscreen" flush onclose={close}>
-  {#snippet subtitle()}
-    {#if model}
-      <span class="sub-line">
-        <span>{modelLabel(model)}</span>
-        <span aria-hidden="true">·</span>
-        <span>Projekt „{$currentProject?.name ?? '–'}“</span>
-        <span aria-hidden="true">·</span>
-        <span>trainiert am {new Date(model.trainedAt).toLocaleString('de-DE')}</span>
-        <span class="chip">aktiv</span>
-        <span class="chip muted">{isPose ? 'Pose' : 'Objekt'}</span>
-        {#if model.source === 'imported'}<span class="chip muted">importiert</span>{/if}
-      </span>
-    {/if}
-  {/snippet}
-
+<Dialog title="Modell-Details" bind:open={isOpen} size="xl" fill>
   {#snippet children()}
+    <!-- The dialog has no subtitle slot: the line under the title opens the body. -->
+    {#if model}
+      <div class="dialog-sub">
+        <span class="sub-line">
+          <span>{modelLabel(model)}</span>
+          <span aria-hidden="true">·</span>
+          <span>Projekt „{$currentProject?.name ?? '–'}“</span>
+          <span aria-hidden="true">·</span>
+          <span>trainiert am {new Date(model.trainedAt).toLocaleString('de-DE')}</span>
+          <span class="chip">aktiv</span>
+          <span class="chip muted">{isPose ? 'Pose' : 'Objekt'}</span>
+          {#if model.source === 'imported'}<span class="chip muted">importiert</span>{/if}
+        </span>
+      </div>
+    {/if}
     {#if !model || !facts || !insights}
       <div class="no-model">Kein Modell ausgewählt.</div>
     {:else}
@@ -536,8 +535,8 @@
               </p>
               <div class="btn-row">
                 <Button
-                  variant="ghost"
-                  size="small"
+                  variant="secondary"
+                  size="s"
                   onclick={() => copy(model.classes.join(', '), 'Klassennamen')}
                 >
                   Klassennamen kopieren
@@ -700,10 +699,10 @@
                   bleibt erhalten, damit du die beiden Läufe vergleichen kannst.
                 </p>
                 <div class="btn-row">
-                  <Button size="small" onclick={() => reuseSettings(model, true)}>
+                  <Button size="s" onclick={() => reuseSettings(model, true)}>
                     Einstellungen für neues Modell übernehmen
                   </Button>
-                  <Button variant="ghost" size="small" onclick={() => reuseSettings(model, false)}>
+                  <Button variant="secondary" size="s" onclick={() => reuseSettings(model, false)}>
                     Ohne Bildbereich übernehmen
                   </Button>
                 </div>
@@ -895,7 +894,7 @@
               <div class="card plain">
                 <p>Die Matrix konnte nicht berechnet werden: {matrixError}</p>
                 <div class="btn-row">
-                  <Button size="small" onclick={() => startMatrix(model)}>Nochmal versuchen</Button>
+                  <Button size="s" onclick={() => startMatrix(model)}>Nochmal versuchen</Button>
                 </div>
               </div>
             {:else if !confusion}
@@ -999,16 +998,16 @@
             <div class="card">
               <div class="card-head">Weitergeben</div>
               <div class="btn-row">
-                <Button size="small" onclick={() => onExport(model)}>Als ZIP exportieren</Button>
+                <Button size="s" onclick={() => onExport(model)}>Als ZIP exportieren</Button>
                 <Button
-                  variant="ghost"
-                  size="small"
+                  variant="secondary"
+                  size="s"
                   disabled={!model.history.epochs.length}
                   onclick={() => exportHistoryCsv(model)}
                 >
                   Verlauf als CSV
                 </Button>
-                <Button variant="ghost" size="small" onclick={() => copy(model.id, 'Modell-ID')}>
+                <Button variant="secondary" size="s" onclick={() => copy(model.id, 'Modell-ID')}>
                   Modell-ID kopieren
                 </Button>
               </div>
@@ -1064,12 +1063,19 @@
     </span>
     <Button onclick={close}>Schließen</Button>
   {/snippet}
-</Modal>
+</Dialog>
 
 <style lang="scss">
   .no-model {
-    padding: 24px;
     font-size: 13px;
+    color: rgb(var(--md-on-surface-variant));
+  }
+  // Stands where the old subtitle stood, under the title, and stays put while
+  // the columns below scroll.
+  .dialog-sub {
+    flex: none;
+    margin-bottom: 16px;
+    font-size: 12px;
     color: rgb(var(--md-on-surface-variant));
   }
   .sub-line {
@@ -1108,7 +1114,7 @@
   }
   .nav {
     border-right: 1px solid rgb(var(--md-outline-variant));
-    padding: 0 10px 16px 24px;
+    padding: 0 10px 16px 0;
     overflow-y: auto;
   }
   .nav-group {
@@ -1605,13 +1611,18 @@
       grid-template-columns: 1fr;
       overflow-y: auto;
     }
-    .nav,
+    .nav {
+      border: none;
+      padding: 0 0 12px;
+      overflow: visible;
+    }
     .rail {
       border: none;
       padding: 0 20px 12px;
       overflow: visible;
     }
     .data {
+      padding: 0 0 20px;
       overflow: visible;
     }
   }

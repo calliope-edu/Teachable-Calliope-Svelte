@@ -6,8 +6,7 @@
    * id. So this is a hint, not a decision that has to be made — the way out is
    * either a model with enough classes or simply carrying on.
    */
-  import Modal from '$lib/components/ui/Modal.svelte';
-  import Button from '$lib/components/ui/Button.svelte';
+  import { Button, Dialog } from '@calliope-edu/ui';
   import { modelLabel } from '$lib/models';
   import type { TrainedModel } from '$lib/stores/projects';
 
@@ -37,11 +36,13 @@
   <Button onclick={onclose}>Weiter so</Button>
 {/snippet}
 
-<Modal
-  isOpen={open}
+<Dialog
+  {open}
   title="Das Programm nutzt mehr Klassen als das Modell"
-  size={candidates.length ? 'medium' : 'small'}
-  onclose={onclose}
+  size={candidates.length ? 'm' : 's'}
+  onOpenChange={(o) => {
+    if (!o) onclose();
+  }}
   actions={candidates.length ? undefined : dismiss}
 >
   <p class="text">
@@ -72,7 +73,7 @@
       {used} Klassen, wenn alle Blöcke wirken sollen.
     </p>
   {/if}
-</Modal>
+</Dialog>
 
 <style lang="scss">
   .text {

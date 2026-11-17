@@ -212,27 +212,7 @@ label.file-label {
   }
 }
 
-// Notification / toast
-.toast {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgb(var(--md-tertiary));
-  color: black;
-  padding: 16px 24px;
-  border-radius: var(--md-radius-md);
-  box-shadow: var(--md-elevation-3);
-  z-index: 10000;
-  font-weight: 500;
-  animation: slideUp 0.3s cubic-bezier(0.2, 0, 0, 1);
-}
-
 // Animations
-@keyframes slideUp {
-  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -284,29 +264,6 @@ label.file-label {
   .class-name { flex-grow: 1; font-weight: 500; color: rgb(var(--md-on-surface)); }
   .class-actions { display: flex; gap: 4px;
     button { padding: 6px 12px; min-height: 32px; }
-  }
-}
-
-// Header nav button
-.header-btn {
-  padding: 8px 18px;
-  border-radius: 20px;
-  background-color: transparent;
-  border: 1px solid transparent;
-  color: rgba(255, 255, 255, 0.93);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
-  box-shadow: none;
-  min-height: unset;
-  &:hover:not(.active) { background-color: rgba(250, 250, 250, 0.6); color: black; }
-  &.active {
-    background-color: var(--btn-green);
-    border-color: var(--btn-green);
-    color: black;
-    font-weight: 600;
-    &:hover { background-color: var(--btn-green-hover); }
   }
 }
 

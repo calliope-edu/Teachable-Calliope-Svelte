@@ -175,31 +175,6 @@
   white-space: nowrap;
 }
 
-@mixin entry-menu-btn {
-  width: 28px;
-  height: 28px;
-  min-height: unset;
-  margin-top: 6px;
-  padding: 0;
-  box-shadow: none;
-  border: none;
-  border-radius: 999px;
-  background: transparent;
-  color: rgb(var(--md-on-surface-variant));
-  cursor: pointer;
-  font-size: 16px;
-  font-family: inherit;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: background 0.15s, color 0.15s;
-  &:hover {
-    background: rgba(var(--md-on-surface), 0.08);
-    color: rgb(var(--md-on-surface));
-  }
-}
-
 // "Make the next one" in a list head. Both lists put the newest entry at the
 // top, so the way to add one belongs up there too — next to the label, above
 // the entry it is going to create.

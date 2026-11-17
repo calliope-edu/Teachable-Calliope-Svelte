@@ -1,6 +1,5 @@
 <script lang="ts">
-  export let classes: string[] = [];
-  export let matrix: number[][] = [];
+  let { classes = [], matrix = [] }: { classes?: string[]; matrix?: number[][] } = $props();
   // compute totals and percentages
   function getRowTotal(row: number[]) {
     return row.reduce((a, b) => a + b, 0);
@@ -32,19 +31,20 @@
       <thead>
         <tr>
           <th></th>
-          {#each classes as c}
+          {#each classes as c (c)}
             <th title={c}>{c}</th>
           {/each}
         </tr>
       </thead>
       <tbody>
-        {#each matrix as row, i}
+        {#each matrix as row, i (classes[i])}
+          {@const total = getRowTotal(row)}
           <tr>
             <th>{classes[i]}</th>
-            {#each row as cell, j}
+            {#each row as cell, j (j)}
               <td class="confusion-cell">
                 {cell}
-                <div style="font-size:10px;color:#666;">{getRowTotal(row) > 0 ? ((cell / getRowTotal(row)) * 100).toFixed(0) + '%' : '-'}</div>
+                <div style="font-size:10px;color:#666;">{total > 0 ? ((cell / total) * 100).toFixed(0) + '%' : '-'}</div>
               </td>
             {/each}
           </tr>

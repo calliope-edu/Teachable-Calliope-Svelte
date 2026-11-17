@@ -7,8 +7,7 @@
    * overlapping targets is how someone loses a picture while trying to choose
    * one. Here the images are laid out at a size you can actually see.
    */
-  import Modal from '$lib/components/ui/Modal.svelte';
-  import Button from '$lib/components/ui/Button.svelte';
+  import { Button, Dialog } from '@calliope-edu/ui';
   import { chooseClassThumb, resetClassThumb } from '$lib/stores';
 
   let {
@@ -46,14 +45,17 @@
   }
 </script>
 
-<Modal
-  isOpen={open}
+<Dialog
+  {open}
   title="Klassenbild für „{className}“"
-  size="large"
-  {onclose}
+  size="l"
+  onOpenChange={(o) => {
+    if (!o) onclose();
+  }}
 >
-  {#snippet subtitle()}
-    <span class="sub">
+  {#snippet children()}
+    <!-- The dialog has no subtitle slot: the line under the title opens the body. -->
+    <div class="sub">
       <!-- The cover in force, shown rather than marked in the grid below: it is a
            downscaled copy of its own, so it never byte-matches the example it came
            from and no cell could be highlighted as "this one". -->
@@ -64,10 +66,8 @@
         Dieses Bild steht überall für die Klasse — in der Klassenliste und in
         Anwenden. Standard ist das erste aufgenommene Bild.
       </span>
-    </span>
-  {/snippet}
+    </div>
 
-  {#snippet children()}
     {#if !images.length}
       <p class="empty">
         Für „{className}“ sind noch keine Bilder aufgenommen. Das erste wird
@@ -96,12 +96,12 @@
   {/snippet}
 
   {#snippet actions()}
-    <Button variant="ghost" onclick={reset} disabled={busy}>
+    <Button variant="secondary" onclick={reset} disabled={busy}>
       Standard verwenden
     </Button>
     <Button onclick={onclose} disabled={busy}>Fertig</Button>
   {/snippet}
-</Modal>
+</Dialog>
 
 <style lang="scss">
   .grid {
@@ -138,6 +138,9 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    margin-bottom: 14px;
+    font-size: 12px;
+    color: rgb(var(--md-on-surface-variant));
   }
   .sub-thumb {
     width: 34px;

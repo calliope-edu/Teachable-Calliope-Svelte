@@ -1,8 +1,16 @@
 <script lang="ts">
+  // calliope-ui: fonts its components use (Roboto, Roboto Condensed for headings
+  // and button labels), its --cui-* tokens and base styles. All of it sits in
+  // @layer calliope.*, so the app's own unlayered CSS below still wins. styles.css
+  // brings tokens.css with it. Imported first so the layers are declared before
+  // global.scss.
+  import '@fontsource-variable/roboto';
+  import '@fontsource-variable/roboto-condensed';
+  import '@calliope-edu/ui/styles.css';
   import '$lib/styles/global.scss';
   import favicon from '$lib/assets/favicon.svg';
   import Header from '$lib/components/Header.svelte';
-  import Toast from '$lib/components/Toast.svelte';
+  import { Toaster } from '@calliope-edu/ui';
   import LanguageOverlay from '$lib/components/LanguageOverlay.svelte';
   import CameraOverlay from '$lib/components/CameraOverlay.svelte';
   import AIInfoOverlay from '$lib/components/AIInfoOverlay.svelte';
@@ -35,9 +43,8 @@
   // /tryout and /apply don't bounce back to the start screen on reload.
   let restored = $state(false);
 
-  // The banner's default layout is a fixed toast at `top: 16px` with z-index
-  // 8000, which #main-header (z-index 100000000, a grid item, so it honours it)
-  // would paint straight over. Portal it into the content row instead — it then
+  // The banner's default layout is a fixed toast at `top: 16px`, which would sit
+  // on top of the header. Portal it into the content row instead — it then
   // positions absolutely inside, landing just below the header.
   let appEl: HTMLDivElement | undefined = $state();
 
@@ -92,7 +99,6 @@
 <Mini2FlashFallbackModal />
 <Mini2SerialOfferModal />
 <Mini12VersionModal />
-<Toast />
 <Header />
 
 <div class="app" bind:this={appEl}>
@@ -106,3 +112,7 @@
      the only component that can reach `confirmReplug()`, so it owns the USB
      recovery ladder. -->
 <ConnectionBanner container={appEl} />
+
+<!-- Last: svelte-sonner renders its region as a static <section>, which would
+     otherwise take a row of the body grid (header, content) ahead of the header. -->
+<Toaster />

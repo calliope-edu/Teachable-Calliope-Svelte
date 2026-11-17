@@ -4,17 +4,22 @@ import { wuchale } from 'wuchale/vite';
 import { defineConfig } from 'vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 
-// The widget's live source checkout in the superrepo. Used in dev only — see
+// The widget's live source checkout in the superrepo (calliope-dev, where this
+// repo is the submodule editors/teachable). Used in dev only — see
 // `_linkWidget` below.
 const _widgetSrc = fileURLToPath(
-	new URL('../../../lib/mini-connection-widget/src/index.ts', import.meta.url)
+	new URL('../../lib/mini-connection-widget/src/index.ts', import.meta.url)
 );
 // The `./makecode` subpath (embedded MakeCode host) needs its own alias: Vite
 // matches string alias keys exactly, so the bare-specifier entry below does not
 // cover it, and this import alone would fall back to the pinned copy.
 const _widgetMakeCodeSrc = fileURLToPath(
-	new URL('../../../lib/mini-connection-widget/src/makecode/index.ts', import.meta.url)
+	new URL('../../lib/mini-connection-widget/src/makecode/index.ts', import.meta.url)
 );
+// calliope-ui (@calliope-edu/ui): same pattern as the widget, as in campus. Its
+// package `exports` point at src/lib, so dev aliases the specifiers this app
+// uses to the checkout in the superrepo.
+const _uiSrc = fileURLToPath(new URL('../../lib/calliope-ui/src/lib', import.meta.url));
 
 export default defineConfig(({ command }) => {
 	// Serve the widget from its checkout during dev instead of the pinned
@@ -35,6 +40,12 @@ export default defineConfig(({ command }) => {
 	// eslint-disable-next-line no-console
 	console.log(
 		`[vite] mini-connection-widget: ${_linkWidget ? 'LINKED (live source) → ' + _widgetSrc : 'PINNED (package.json sha)'}`
+	);
+	// Same rules for calliope-ui; UI_PINNED=1 forces the pinned sha in dev.
+	const _linkUi = command === 'serve' && process.env.UI_PINNED !== '1' && existsSync(_uiSrc);
+	// eslint-disable-next-line no-console
+	console.log(
+		`[vite] calliope-ui: ${_linkUi ? 'LINKED (live source) → ' + _uiSrc : 'PINNED (package.json sha)'}`
 	);
 
 	return {
@@ -58,13 +69,23 @@ export default defineConfig(({ command }) => {
 			// Typed as a record so both ternary branches share one shape; an
 			// inferred union of "two keys" and "no keys" doesn't satisfy
 			// AliasOptions.
-			alias: (_linkWidget
-				? {
-						// Longest specifier first — Vite replaces on exact match.
-						'@calliope-edu/mini-connection-widget/makecode': _widgetMakeCodeSrc,
-						'@calliope-edu/mini-connection-widget': _widgetSrc
-					}
-				: {}) as Record<string, string>
+			alias: {
+				...(_linkWidget
+					? {
+							// Longest specifier first — Vite replaces on exact match.
+							'@calliope-edu/mini-connection-widget/makecode': _widgetMakeCodeSrc,
+							'@calliope-edu/mini-connection-widget': _widgetSrc
+						}
+					: {}),
+				...(_linkUi
+					? {
+							'@calliope-edu/ui/tokens.css': _uiSrc + '/tokens/tokens.css',
+							'@calliope-edu/ui/tokens.scss': _uiSrc + '/tokens/tokens.scss',
+							'@calliope-edu/ui/styles.css': _uiSrc + '/styles/styles.css',
+							'@calliope-edu/ui': _uiSrc + '/index.ts'
+						}
+					: {})
+			} as Record<string, string>
 		},
 		optimizeDeps: {
 			// The widget ships unbuilt source: its entry is `src/index.ts` and it
@@ -74,7 +95,9 @@ export default defineConfig(({ command }) => {
 			// the dep optimizer would try to prebundle it and fail.
 			exclude: [
 				'@calliope-edu/mini-connection-widget',
-				'@calliope-edu/mini-connection-widget/makecode'
+				'@calliope-edu/mini-connection-widget/makecode',
+				// Ships .svelte source too (package `exports` point at src/lib).
+				'@calliope-edu/ui'
 			],
 			// Excluding the widget means Vite never crawls its imports, so its
 			// transitive deps go un-prebundled too. `nrf-intel-hex` (imported as
@@ -85,9 +108,9 @@ export default defineConfig(({ command }) => {
 			include: ['nrf-intel-hex']
 		},
 		server: {
-			// Let Vite serve the widget checkout (three levels up, under lib/) and
-			// its node_modules. Only needed while `_linkWidget` is on.
-			fs: { allow: ['..', '../..', '../../..'] }
+			// Let Vite serve the widget and calliope-ui checkouts (two levels up,
+			// under lib/) and their node_modules. Only needed while they are linked.
+			fs: { allow: ['..', '../..'] }
 		}
 	};
 });

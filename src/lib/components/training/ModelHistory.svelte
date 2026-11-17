@@ -8,8 +8,7 @@
   import { exportModelToZip } from '$lib/machine';
   import { activateModel } from '$lib/models';
   import { showNotification } from '$lib/stores/notifications';
-  import Dropdown from '$lib/components/ui/Dropdown.svelte';
-  import DropdownItem from '$lib/components/ui/DropdownItem.svelte';
+  import { IconButton, Menu, MenuItem } from '@calliope-edu/ui';
   import DeleteConfirmDialog, {
     type DeleteTarget
   } from '$lib/components/DeleteConfirmDialog.svelte';
@@ -174,14 +173,15 @@
                 ></span>
               {/if}
               {#if editingId === run.id && !selectable}
-                <!-- svelte-ignore a11y_autofocus -->
+                <!-- Focused on mount rather than through autofocus, which only acts
+                     while nothing else has focus — after the menu, its trigger has. -->
                 <input
                   class="title-edit"
                   bind:value={draft}
                   onkeydown={onInputKey}
                   onblur={commitEdit}
                   onclick={(e) => e.stopPropagation()}
-                  autofocus
+                  {@attach (el) => el.focus()}
                 />
               {:else}
                 <span class="title-text">{run.label || formatDate(run.trainedAt)}</span>
@@ -233,17 +233,19 @@
             {/if}
           </div>
           {#if !selectable}
-          <Dropdown placement="bottom-end">
-            {#snippet trigger()}
-              <button type="button" class="menu" aria-label="Aktionen" title="Mehr">⋯</button>
+          <Menu align="end">
+            {#snippet trigger({ props })}
+              <IconButton {...props} icon="more" label="Aktionen" size="s" />
             {/snippet}
-            {#snippet children()}
-              <!-- No "load" entry: clicking the row is what loads a model. -->
-              <DropdownItem onclick={() => startEdit(run.id, run.label)}>Umbenennen</DropdownItem>
-              <DropdownItem onclick={() => onExport(run.id)}>Exportieren</DropdownItem>
-              <DropdownItem onclick={() => onDelete(run.id)}>Löschen</DropdownItem>
-            {/snippet}
-          </Dropdown>
+            <!-- No "load" entry: clicking the row is what loads a model. -->
+            <!-- After the menu has handed the focus back to its trigger, so the
+                 name field can take it. -->
+            <MenuItem onSelect={() => setTimeout(() => startEdit(run.id, run.label))}>
+              Umbenennen
+            </MenuItem>
+            <MenuItem onSelect={() => onExport(run.id)}>Exportieren</MenuItem>
+            <MenuItem tone="negative" onSelect={() => onDelete(run.id)}>Löschen</MenuItem>
+          </Menu>
           {/if}
         </div>
       </li>
@@ -272,7 +274,6 @@
   .title-edit { @include entry-title-edit; }
   .edit-btn { @include entry-edit-btn; }
   .chip { @include entry-chip; }
-  .menu { @include entry-menu-btn; }
   .empty { @include entry-empty; }
 
   // Selection mode: the checkbox sits where the row's left padding is, so the

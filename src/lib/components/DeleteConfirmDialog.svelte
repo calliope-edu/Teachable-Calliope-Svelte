@@ -19,8 +19,7 @@
 </script>
 
 <script lang="ts">
-  import Modal from '$lib/components/ui/Modal.svelte';
-  import CampusButton from '$lib/components/ui/CampusButton.svelte';
+  import { ConfirmDialog } from '@calliope-edu/ui';
   import { classes, examples, draftRoi } from '$lib/stores';
   import { currentProject } from '$lib/stores/projects';
   import { modelLabel } from '$lib/models';
@@ -134,10 +133,18 @@
   </div>
 {/snippet}
 
-<Modal isOpen={!!target} title={copy?.title ?? ''} size="medium" onclose={oncancel}>
-  {#snippet children()}
+<!-- Focus starts on "Abbrechen", as for every destructive confirmation (calliope-ui
+     ConfirmDialog with tone negative). -->
+<ConfirmDialog
+  open={!!target}
+  title={copy?.title ?? ''}
+  description={copy?.text}
+  confirmLabel={copy?.confirm ?? 'Löschen'}
+  tone="negative"
+  onConfirm={onconfirm}
+  onCancel={oncancel}
+>
     {#if target && copy}
-      <p class="message">{copy.text}</p>
 
       <!-- The item itself, so what disappears is visible and not just named. -->
       <div class="preview">
@@ -212,23 +219,9 @@
 
       <p class="warning">Das lässt sich nicht rückgängig machen.</p>
     {/if}
-  {/snippet}
-
-  {#snippet actions()}
-    <CampusButton variant="secondary" onclick={oncancel}>Abbrechen</CampusButton>
-    <CampusButton variant="primary" type="negative" onclick={onconfirm}>
-      {copy?.confirm ?? 'Löschen'}
-    </CampusButton>
-  {/snippet}
-</Modal>
+</ConfirmDialog>
 
 <style lang="scss">
-  .message {
-    margin: 0 0 14px;
-    font-size: 14px;
-    line-height: 1.5;
-    color: rgb(var(--md-on-surface-variant));
-  }
   .preview {
     padding: 12px 14px;
     background: rgba(var(--md-surface-variant), 0.4);
