@@ -24,6 +24,7 @@
   import { activateModel, modelLabel } from '$lib/models';
   import { exportCurrentProject } from '$lib/projects-io';
   import { showNotification } from '$lib/stores/notifications';
+  import BuildInfoLine from '$lib/components/BuildInfoLine.svelte';
 
   let editingName = $state(false);
   let nameInput = $state('');
@@ -223,6 +224,9 @@
       <MenuItem onSelect={openCamera}>Kamera</MenuItem>
       <MenuItem onSelect={openLanguage}>Sprachen</MenuItem>
       <MenuItem onSelect={openAIInfo}>KI-Hinweise</MenuItem>
+      <!-- Which build this is (docs/build-info.md). -->
+      <MenuSeparator />
+      <BuildInfoLine />
     </Menu>
   {/snippet}
 </AppHeader>

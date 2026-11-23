@@ -6,6 +6,25 @@ Svelte 5 runes, built as a static site (`@sveltejs/adapter-static`). It lives in
 the calliope-dev superrepo as `editors/teachable`, next to `lib/calliope-ui` and
 `lib/mini-connection-widget`.
 
+## Branches
+
+- Work on `calliope-main`: branch off it and merge back into it. `main` is
+  history.
+- A tag `vX.Y.Z` on `calliope-main` goes live: the `calliope-build` workflow
+  builds it onto `build-live` (teachablemachine.calliope.cc). Every push to
+  `calliope-main` builds onto `build-dev` (teachablemachine-dev.calliope.cc).
+  Cut a release with the `release` workflow (docs/build-info.md).
+- Never commit to `build-live` or `build-dev` by hand; only the workflow writes
+  them.
+- calliope-ui and the widget are set per channel at build time
+  (`resolve-calliope-deps`): live takes their newest release tags, dev their
+  newest commits. The pins in `package.json` only serve local development.
+
+## Version
+
+- `BUILD.json` and the settings menu's version line follow docs/build-info.md,
+  which copies the format of calliope-mini-python-editor.
+
 ## Running it
 
 - `pnpm install --frozen-lockfile`, then `pnpm dev` inside the superrepo.
