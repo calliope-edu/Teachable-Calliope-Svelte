@@ -49,8 +49,11 @@ build branch as it is:
 Build settings: framework preset none, no build command, build output directory
 `/` (the repository root). Preview deployments off. The build has no top-level
 `404.html`, so Pages serves `index.html` for paths without a file, the same SPA
-shell as `200.html`. Swapping the host later means pointing another host at the
-same build branches. `static/.htaccess` is for the Apache at Strato that served
+shell as `200.html`. That only works at any depth because the pages load their
+scripts from absolute paths (`paths.relative: false` in `svelte.config.js`);
+with SvelteKit's default `./_app/…`, `/a/b` would load `/a/_app/…` and stay
+blank. Swapping the host later means pointing another host at the same build
+branches. `static/.htaccess` is for the Apache at Strato that served
 the live site before.
 
 ## `BUILD.json`
