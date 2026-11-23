@@ -1,0 +1,15 @@
+{
+  "channel": "live",
+  "version": "v1.0.0",
+  "commit": "a3c5c3ce749403f50bfd899c9efa037b4f86be1b",
+  "builtAt": "2026-11-23T22:24:19Z",
+  "ui": {
+    "tag": "v0.1.0",
+    "commit": "4e015326cdd155e6db7e74bc08138ee3f870dbfb"
+  },
+  "widget": {
+    "tag": "v0.3.0",
+    "commit": "53a8a25d108f808e9b9ad1364e5568374eb2246a"
+  },
+  "libs": {}
+}
