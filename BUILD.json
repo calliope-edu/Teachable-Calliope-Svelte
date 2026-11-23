@@ -1,8 +1,8 @@
 {
   "channel": "live",
-  "version": "v1.0.0",
-  "commit": "a3c5c3ce749403f50bfd899c9efa037b4f86be1b",
-  "builtAt": "2026-11-23T22:24:19Z",
+  "version": "v1.0.1",
+  "commit": "8b0e0bc2072d8378f8ea31327a2971a967f4ee7a",
+  "builtAt": "2026-11-23T23:09:24Z",
   "ui": {
     "tag": "v0.1.0",
     "commit": "4e015326cdd155e6db7e74bc08138ee3f870dbfb"
