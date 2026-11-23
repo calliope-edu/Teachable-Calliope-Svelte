@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs';
 import { wuchale } from 'wuchale/vite';
 import { defineConfig } from 'vite';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { buildInfo } from './scripts/build-info.mjs';
 
 // The widget's live source checkout in the superrepo (calliope-dev, where this
 // repo is the submodule editors/teachable). Used in dev only — see
@@ -49,6 +50,9 @@ export default defineConfig(({ command }) => {
 	);
 
 	return {
+		// The build's version for the settings menu (src/lib/build-info.ts); the
+		// calliope-build workflow writes the same object as BUILD.json.
+		define: { __BUILD_INFO__: JSON.stringify(buildInfo()) },
 		// wuchale has to run before sveltekit so it sees the untransformed
 		// components: it extracts the German source text and rewrites it into
 		// catalog lookups. Configured in wuchale.config.js.

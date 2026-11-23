@@ -1,3 +1,6 @@
+// The build's version, compiled in by vite.config.ts (src/lib/build-info.ts).
+declare const __BUILD_INFO__: unknown;
+
 declare module 'file-saver';
 declare module 'file-saver/dist/FileSaver';
 

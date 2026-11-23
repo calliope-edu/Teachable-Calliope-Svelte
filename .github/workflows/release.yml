@@ -1,0 +1,71 @@
+name: Release
+
+# Cuts a release from the newest commit on calliope-main: sets the version in
+# package.json, commits it, tags it vX.Y.Z, publishes a GitHub release and
+# starts calliope-build for the tag, which builds it onto build-live
+# (teachablemachine.calliope.cc).
+#
+#   gh workflow run release.yml -R calliope-edu/Teachable-Calliope-Svelte -f bump=minor
+#
+# Pushing a tag vX.Y.Z by hand does the same build, without the version commit
+# and the GitHub release.
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'patch (fixes), minor (new features), major, or an explicit X.Y.Z'
+        required: true
+        default: minor
+
+permissions:
+  contents: write
+  # gh workflow run: a tag pushed with the workflow token starts no workflow.
+  actions: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Only from calliope-main
+        if: github.ref != 'refs/heads/calliope-main'
+        run: |
+          echo "::error::Releases are cut from calliope-main, not ${GITHUB_REF}"
+          exit 1
+
+      - uses: actions/checkout@v4
+        with:
+          ref: calliope-main
+          fetch-depth: 0
+
+      - name: Version
+        id: version
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: echo "version=$(node scripts/release-version.mjs "$BUMP" --write)" >> "$GITHUB_OUTPUT"
+
+      - name: Commit, tag and push
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -am "chore(release): v${VERSION}"
+          git tag -a "v${VERSION}" -m "v${VERSION}"
+          git push --atomic origin HEAD:refs/heads/calliope-main "refs/tags/v${VERSION}"
+
+      - name: GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: gh release create "v${VERSION}" --title "v${VERSION}" --generate-notes --verify-tag
+
+      - name: Build it onto build-live
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: gh workflow run calliope-build.yml --ref "v${VERSION}"

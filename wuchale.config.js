@@ -104,6 +104,8 @@ export default defineConfig({
 					'src/**/*.spec.*',
 					'src/**/*.d.ts',
 					'src/locales/**',
+					// Version numbers and package names, the same in every language.
+					'src/lib/build-info.ts',
 					// Code generators, not UI: these build MakeCode project files, so
 					// their strings are TypeScript identifiers, pxt.json fields and
 					// README text that ships inside the generated extension.

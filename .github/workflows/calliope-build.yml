@@ -1,0 +1,118 @@
+name: calliope-build
+
+# Builds the Teachable Machine and pushes the build to a build branch, one
+# commit per build:
+#
+#   tag vX.Y.Z               → build-live  (teachablemachine.calliope.cc)
+#   push to calliope-main    → build-dev   (teachablemachine-dev.calliope.cc)
+#
+# Each build branch is ready to serve as it is: a Cloudflare Pages project on it
+# needs no build command and the repository root as its output directory. The
+# app has only its own site; Calliope Campus does not embed it.
+#
+# calliope-ui and the connection widget follow the channel
+# (resolve-calliope-deps): a live build takes their newest release tags within
+# the pinned major, a dev build their newest commits on calliope-main. The pins
+# in package.json only serve local development.
+#
+# Each commit carries BUILD.json at its root (format in docs/build-info.md)
+# naming channel, version, source commit and the calliope-ui and widget states;
+# the build compiles the same values in for the settings menu's version line.
+#
+# The build branches only ever grow; nobody commits to them by hand.
+
+on:
+  push:
+    branches:
+      - calliope-main
+    tags:
+      - 'v*'
+  # The release workflow starts it for the tag it cuts (a tag pushed with the
+  # workflow token starts no workflow by itself); by hand, pick a tag to
+  # rebuild live or calliope-main to rebuild dev.
+  workflow_dispatch:
+
+# One build after the other per build branch, so every build lands in order.
+concurrency:
+  group: calliope-build-${{ github.ref_type }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      # Version from the packageManager field in package.json.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # live for a tag, dev otherwise. Rewrites the two pins in package.json, so
+      # the lockfile no longer matches and the install below may update it.
+      - id: calliope
+        uses: calliope-edu/calliope-ui/.github/actions/resolve-calliope-deps@calliope-main
+
+      - run: pnpm install --no-frozen-lockfile
+
+      # One set of build values for the build and its BUILD.json
+      # (scripts/build-info.mjs; vite.config.ts compiles them in).
+      - name: Build info
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          DEPS: ${{ steps.calliope.outputs.json }}
+        run: |
+          channel=dev
+          if [ "$REF_TYPE" = tag ]; then channel=live; fi
+          {
+            echo "BUILD_CHANNEL=$channel"
+            echo "BUILD_VERSION=$REF_NAME"
+            echo "BUILD_COMMIT=$SHA"
+            echo "BUILD_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "CALLIOPE_DEPS=$DEPS"
+          } >> "$GITHUB_ENV"
+
+      - run: pnpm build
+
+      - name: Push the build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
+          SOURCE_REF: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
+        run: |
+          set -euo pipefail
+          target=build-dev
+          if [ "$REF_TYPE" = tag ]; then target=build-live; fi
+          short=${SOURCE_SHA:0:7}
+          out="$PWD/build"
+          # The same values the build compiled in (step "Build info").
+          node scripts/build-info.mjs > "$out/BUILD.json"
+          cat "$out/BUILD.json"
+          mkdir "$RUNNER_TEMP/publish" && cd "$RUNNER_TEMP/publish"
+          git init -q
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+          if git fetch -q --depth 1 origin "$target"; then
+            git checkout -q -b "$target" FETCH_HEAD
+          else
+            git checkout -q --orphan "$target"
+          fi
+          git rm -rqf --ignore-unmatch .
+          cp -r "$out/." .
+          # Build output, kept byte for byte: no line-ending conversion on checkout.
+          printf '# Build output, kept byte for byte (no line-ending conversion on checkout).\n* -text\n' > .gitattributes
+          git add -A
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -q -m "build ${short} from ${SOURCE_REF}" -m "Source: https://github.com/${REPO}/commit/${SOURCE_SHA}"
+          git push -q origin "$target"
+          echo "### ${target}: build ${short} from ${SOURCE_REF}" >> "$GITHUB_STEP_SUMMARY"
