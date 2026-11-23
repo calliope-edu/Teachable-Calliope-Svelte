@@ -250,7 +250,7 @@
     max-width: 1180px;
     margin-inline: auto;
     padding: 32px;
-    overflow-y: auto;
+    // No scrolling of its own: its parent view scrolls (see routes/+page.svelte).
     display: flex;
     flex-direction: column;
     gap: 32px;
