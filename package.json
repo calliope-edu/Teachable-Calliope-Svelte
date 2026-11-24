@@ -65,7 +65,7 @@
 	},
 	"dependencies": {
 		"@calliope-edu/mini-connection-widget": "github:calliope-edu/mini-connection-widget#47e0c1b2d4106c679d1fa7233d0fa1bc9f205a1a",
-		"@calliope-edu/ui": "github:calliope-edu/calliope-ui#8a2aeb11e4828a66a9ebef05e091a2d77829c737",
+		"@calliope-edu/ui": "github:calliope-edu/calliope-ui#6faa0c1f67978a2bdfe0d744f284f67c594fcc57",
 		"@capacitor-community/bluetooth-le": "^7.3.0",
 		"@capacitor/core": "^7.4.4",
 		"@capacitor/filesystem": "^7.1.6",
